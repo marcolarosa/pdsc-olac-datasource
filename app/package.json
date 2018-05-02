@@ -1,0 +1,38 @@
+{
+    "name": "api-service",
+    "version": "1.0.0",
+    "description": "API service",
+    "main": "index.js",
+    "scripts": {
+        "develop": "node_modules/gulp/bin/gulp.js develop",
+        "build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
+        "lint": ""
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:marcolarosa/pdsc-olac-datasource.git"
+    },
+    "author": "Marco La Rosa",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/marcolarosa/pdsc-olac-datasource/issues"
+    },
+    "homepage": "https://github.com/marcolarosa/pdsc-olac-datasource#README",
+    "devDependencies": {
+        "chai": "^4.1.2",
+        "chakram": "^1.5.0",
+        "gulp": "^4.0.0",
+        "gulp-mocha": "^5.0.0",
+        "mocha": "^5.0.0",
+        "source-map-support": "^0.5.3",
+        "webpack": "^3.11.0"
+    },
+    "dependencies": {
+        "app-module-path": "^2.2.0",
+        "pg": "^7.4.1",
+        "pg-hstore": "^2.3.2",
+        "restify": "^6.3.4",
+        "restify-errors": "^5.0.0",
+        "sequelize": "^4.37.6"
+    }
+}
