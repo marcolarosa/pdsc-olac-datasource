@@ -29,6 +29,8 @@
     },
     "dependencies": {
         "app-module-path": "^2.2.0",
+        "lodash": "^4.17.10",
+        "moment": "^2.22.1",
         "pg": "^7.4.1",
         "pg-hstore": "^2.3.2",
         "restify": "^6.3.4",

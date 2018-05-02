@@ -3,8 +3,8 @@
 require('app-module-path/cwd');
 require('app-module-path').addPath('src/common/node_modules');
 const restify = require('restify');
-const routers = require('routers');
-const models = require('models');
+const routers = require('src/routers');
+const models = require('src/models');
 
 setup().then(server => {
     return server.listen(3000, function() {

@@ -34,10 +34,7 @@ function unitTestManager(done) {
 
     function runUnitTests(done) {
         return gulp
-            .src([
-                `${sources.scripts.path}/*.spec.js`,
-                '!src/common/node_modules/**/*.spec.js'
-            ])
+            .src([`${sources.scripts.path}/*.spec.js`])
             .pipe(mocha({bail: true, exit: true}))
             .on('error', function(err) {
                 console.log(err.stack);

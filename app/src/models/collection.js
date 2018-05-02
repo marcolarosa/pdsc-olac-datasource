@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
         {}
     );
     Collection.associate = function(models) {
-        Collection.hasMany(models.document, {
+        Collection.hasMany(models.language, {
             hooks: true,
             onDelete: 'cascade'
         });

@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function(sequelize, DataTypes) {
-    let Document = sequelize.define(
-        'document',
+    let Language = sequelize.define(
+        'language',
         {
             name: {
                 primaryKey: true,
@@ -22,11 +22,11 @@ module.exports = function(sequelize, DataTypes) {
             timestamps: false
         }
     );
-    Document.associate = function(models) {
-        Document.belongsTo(models.collection, {
+    Language.associate = function(models) {
+        Language.belongsTo(models.collection, {
             onDelete: 'cascade'
         });
     };
 
-    return Document;
+    return Language;
 };
