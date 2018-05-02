@@ -10,6 +10,7 @@ module.exports = {
 
 function wireUpRoutes(server) {
     server.get('/collections', getCollections);
+    server.del('/collections/:collection', deleteCollection);
     server.get('/language/:collection/:name', getLanguage);
     server.post('/language', postLanguage);
 }
@@ -17,6 +18,18 @@ function wireUpRoutes(server) {
 async function getCollections(req, res, next) {
     const collections = await models.collection.findAll();
     res.send(200, collections.map(c => c.name));
+    return next();
+}
+
+async function deleteCollection(req, res, next) {
+    if (req.headers.host !== 'localhost:3000') {
+        return next(new errors.ForbiddenError());
+    }
+    if (!req.params.collection) {
+        return next(new errors.BadRequestError());
+    }
+    await models.collection.destroy({where: {name: req.params.name}});
+    res.send(200);
     return next();
 }
 

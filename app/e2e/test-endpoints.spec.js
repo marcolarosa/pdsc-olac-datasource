@@ -27,6 +27,20 @@ describe(`test endpoints - `, () => {
         expect(response.body.length).to.equal(1);
         expect(response.body[0]).to.equal(today);
     });
+    it('should be able to delete a collection', async () => {
+        await models.collection.create({
+            name: today
+        });
+        await models.language.create({
+            name: 'aaa',
+            collectionName: today,
+            data: {}
+        });
+        const r = await chakram.del(`${uri}/collections/${today}`);
+        const response = r.response;
+        expect(response.statusCode).to.equal(200);
+    });
+
     it('should be able to get a language', async () => {
         await models.collection.create({
             name: today
