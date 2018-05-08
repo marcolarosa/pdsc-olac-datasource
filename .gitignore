@@ -50,4 +50,5 @@ combined.log
 error.log
 
 last-update.log
+archiver.log
 docker/api-service-production/api
