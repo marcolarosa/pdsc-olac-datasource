@@ -49,5 +49,5 @@ services:
         mem_limit: 256M
         volumes:
             - ~/src/pdsc/olac-datasource/app:/srv/pdsc-olac-datasource/api-service
-            - ~/src/pdsc/olac-data:/data
+            - ~/src/pdsc/olac-data:/srv/data
         command: [ 'yarn', 'develop']
