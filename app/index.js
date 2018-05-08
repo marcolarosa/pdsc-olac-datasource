@@ -16,13 +16,13 @@ setup().then(server => {
         new cronJob(
             '00 00 2 * * *',
             updateLanguageData,
-            cleanupDatabase,
+            cleanup,
             true,
             'Australia/Melbourne'
         );
         await killExistingUpdaters();
         // updateLanguageData();
-        cleanupDatabase();
+        cleanup();
     });
 });
 
@@ -60,7 +60,7 @@ async function updateLanguageData() {
     cmd += `--languages process-language-pages/languages.csv `;
     cmd += `--glotto-languoids process-language-pages/languoid.csv `;
     cmd += `--service http://localhost:3000 `;
-    cmd += `--output-folder /data `;
+    cmd += `--output-folder /srv/data `;
     // cmd += `--mode development `;
     cmd += `--info > process-language-pages/last-update.log 2>&1`;
     exec(cmd, {async: true});
@@ -93,13 +93,25 @@ async function killExistingUpdaters() {
     });
 }
 
-async function cleanupDatabase() {
-    const dates = await loadHarvestDates();
-    const today = moment().format('YYYYMMDD');
-    dates.forEach(async d => {
-        const re = /\d\d\d\d\d\d01/;
-        if (d !== today && !d.match(re)) {
-            await models.language.destroy({where: {date: d}});
-        }
-    });
+async function cleanup() {
+    await cleanupDatabase();
+    archiveData();
+
+    function archiveData() {
+        let cmd = `python3 process-language-pages/archiver.py `;
+        cmd += `--data /srv/data `;
+        cmd += `--info > process-language-pages/archiver.log 2>&1`;
+        exec(cmd, {async: true});
+    }
+
+    async function cleanupDatabase() {
+        const dates = await loadHarvestDates();
+        const today = moment().format('YYYYMMDD');
+        dates.forEach(async d => {
+            const re = /\d\d\d\d\d\d01/;
+            if (d !== today && !d.match(re)) {
+                await models.language.destroy({where: {date: d}});
+            }
+        });
+    }
 }
