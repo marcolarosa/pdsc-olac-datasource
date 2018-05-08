@@ -1,6 +1,6 @@
 'use strict';
 
-const models = require('src/models');
+const models = require('../models').getModels();
 const moment = require('moment');
 const errors = require('restify-errors');
 const Sequelize = require('sequelize');
@@ -11,10 +11,43 @@ module.exports = {
 };
 
 function wireUpRoutes(server) {
+    server.get('/', getHelp);
     server.get('/dates', getDates);
     server.get('/languages/:name', getLanguage);
     server.get('/languages/:name/resources', getLanguageResources);
     server.post('/languages', postLanguage);
+}
+
+function getHelp(req, res, next) {
+    res.send(200, {
+        'API routes': {
+            dates: {
+                URI: '/dates',
+                returns: 'An array of available harvest dates'
+            },
+            languages: [
+                {
+                    URI: '/languages/{language code}',
+                    returns:
+                        'The most recent language data harvested without resources.'
+                },
+                {
+                    URI: '/languages/{language code}?date=20180501',
+                    returns:
+                        'The language data harvested on 20180501 - again without resources.'
+                },
+                {
+                    URI: '/languages/{language code}/resources',
+                    returns: 'The most recent language resources harvested.'
+                },
+                {
+                    URI: '/languages/{language code}/resources?date=20180501',
+                    returns: 'The language resources harvested on 20180501.'
+                }
+            ]
+        }
+    });
+    return next();
 }
 
 async function getDates(req, res, next) {
@@ -40,8 +73,12 @@ async function getLanguage(req, res, next) {
         },
         attributes: ['id', 'name', 'date', 'metadata']
     });
-    res.send(200, language.get());
-    return next();
+    if (language) {
+        res.send(200, language.get());
+        return next();
+    } else {
+        return next(new errors.NotFoundError());
+    }
 }
 
 async function getLanguageResources(req, res, next) {

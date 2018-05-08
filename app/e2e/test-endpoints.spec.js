@@ -4,7 +4,7 @@ const chai = require('chai');
 const chakram = require('chakram');
 const expect = chai.expect;
 const moment = require('moment');
-const models = require('../src/models');
+const models = require('../src/models').getModels();
 const today = moment().format('YYYYMMDD');
 const uri = 'http://localhost:3000';
 

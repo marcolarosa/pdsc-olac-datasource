@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+BASE="../config"
+
+if [ "$1" == "production" ] ; then
+    if [ -z "${POSTGRES_PASSWORD}" ] ; then
+        echo "Please exec this script as follows:"
+        echo "export POSTGRES_PASSWORD='some password'"
+        echo "./start-production.sh"
+        exit
+    fi
+    docker-compose -f ${BASE}/compose-production.yml up -d
+elif [ "$1" == "development" ] ; then
+    docker-compose -f ${BASE}/compose-development.yml up -d
+else
+    echo "Usage: $0 [ development | production ]"
+    echo
+    echo "Assuming development..."
+    docker-compose -f ${BASE}/compose-development.yml up -d
+fi

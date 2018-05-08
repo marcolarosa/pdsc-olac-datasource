@@ -3,13 +3,12 @@
 require('app-module-path/cwd');
 require('app-module-path').addPath('src/common/node_modules');
 const restify = require('restify');
-const routers = require('src/routers');
-const models = require('src/models');
+const models = require('./src/models').getModels();
 const {exec} = require('shelljs');
 const {lookup, kill} = require('ps-node');
 const cronJob = require('cron').CronJob;
 const moment = require('moment');
-const {loadHarvestDates} = require('src/routers');
+const {loadHarvestDates, wireUpRoutes} = require('./src/routers');
 
 setup().then(server => {
     return server.listen(3000, async () => {
@@ -50,7 +49,7 @@ function setup() {
         server.use(restify.plugins.gzipResponse());
         server.use(restify.plugins.bodyParser());
         server.use(restify.plugins.conditionalRequest());
-        routers.wireUpRoutes(server);
+        wireUpRoutes(server);
         return server;
     }
 }

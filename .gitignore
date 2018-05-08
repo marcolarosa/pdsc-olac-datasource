@@ -50,3 +50,4 @@ combined.log
 error.log
 
 last-update.log
+docker/api-service-production/api

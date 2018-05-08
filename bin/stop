@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+BASE="../config"
+
+stop_development() {
+    docker-compose -f ${BASE}/compose-development.yml stop
+    docker-compose -f ${BASE}/compose-development.yml rm -f
+}
+
+if [ "$1" == "production" ] ; then
+    docker-compose -f ${BASE}/compose-production.yml stop
+    docker-compose -f ${BASE}/compose-production.yml rm -f
+elif [ "$1" == "development" ] ; then
+    stop_development
+else
+    echo "Usage: $0 [ development | production ]"
+    echo
+    echo "Assuming development..."
+    stop_development
+fi

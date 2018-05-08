@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+BASE="../docker"
+
+cd ../app
+yarn build:production
+
+docker build --rm=true \
+    --tag "pdsc-olac-datasource/api-service-production" \
+    ${BASE}/api-service-production
