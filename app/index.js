@@ -9,6 +9,7 @@ const {exec} = require('shelljs');
 const {lookup, kill} = require('ps-node');
 const cronJob = require('cron').CronJob;
 const moment = require('moment');
+const {loadHarvestDates} = require('src/routers');
 
 setup().then(server => {
     return server.listen(3000, async () => {
@@ -94,12 +95,12 @@ async function killExistingUpdaters() {
 }
 
 async function cleanupDatabase() {
+    const dates = await loadHarvestDates();
     const today = moment().format('YYYYMMDD');
-    const collections = await models.collection.findAll();
-    collections.forEach(async c => {
+    dates.forEach(async d => {
         const re = /\d\d\d\d\d\d01/;
-        if (c.name !== today && !c.name.match(re)) {
-            await c.destroy();
+        if (d !== today && !d.match(re)) {
+            await models.language.destroy({where: {date: d}});
         }
     });
 }

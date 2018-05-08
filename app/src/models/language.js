@@ -17,7 +17,19 @@ module.exports = function(sequelize, DataTypes) {
                     notEmpty: true
                 }
             },
-            data: {
+            date: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                validate: {
+                    notEmpty: true
+                }
+            },
+            metadata: {
+                type: DataTypes.JSON,
+                allowNull: false,
+                defaultValue: ''
+            },
+            resources: {
                 type: DataTypes.JSON,
                 allowNull: false,
                 defaultValue: ''
@@ -25,14 +37,10 @@ module.exports = function(sequelize, DataTypes) {
         },
         {
             timestamps: false,
-            indexes: [{unique: true, fields: ['name', 'collectionName']}]
+            indexes: [{unique: true, fields: ['name', 'date']}]
         }
     );
-    Language.associate = function(models) {
-        Language.belongsTo(models.collection, {
-            onDelete: 'cascade'
-        });
-    };
+    Language.associate = function(models) {};
 
     return Language;
 };
