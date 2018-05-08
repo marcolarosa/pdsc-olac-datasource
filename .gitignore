@@ -48,3 +48,5 @@ data.sqlite
 
 combined.log
 error.log
+
+last-update.log

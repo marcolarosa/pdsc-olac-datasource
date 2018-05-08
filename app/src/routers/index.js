@@ -51,16 +51,24 @@ async function postLanguage(req, res, next) {
     if (!req.body.code) {
         return next(new errors.BadRequestError());
     }
-    const data = req.body;
-    const today = moment().format('YYYYMMDD');
-    const collection = await models.collection.findOrCreate({
-        where: {name: today},
-        defaults: {name: today}
-    });
-    const language = await models.language.findOrCreate({
-        where: {name: data.code, collectionName: today},
-        defaults: {name: data.code, collectionName: today, data: data}
-    });
-    res.send(200, language[0].get());
-    return next;
+    try {
+        const data = req.body;
+        const collection = await models.collection.findOrCreate({
+            where: {name: data.date},
+            defaults: {name: data.date}
+        });
+        let language = await models.language.findOrCreate({
+            where: {name: data.code, collectionName: data.date},
+            defaults: {name: data.code, collectionName: data.date, data: data}
+        });
+        language = language[0];
+        language.update({data: data});
+        res.send(200, language.get());
+        return next();
+    } catch (error) {
+        console.log(error);
+        console.log(req.body);
+        res.send(200);
+        return next();
+    }
 }

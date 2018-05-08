@@ -4,8 +4,13 @@ module.exports = function(sequelize, DataTypes) {
     let Language = sequelize.define(
         'language',
         {
-            name: {
+            id: {
                 primaryKey: true,
+                type: DataTypes.UUID,
+                allowNull: false,
+                defaultValue: DataTypes.UUIDV4
+            },
+            name: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
@@ -19,7 +24,8 @@ module.exports = function(sequelize, DataTypes) {
             }
         },
         {
-            timestamps: false
+            timestamps: false,
+            indexes: [{unique: true, fields: ['name', 'collectionName']}]
         }
     );
     Language.associate = function(models) {

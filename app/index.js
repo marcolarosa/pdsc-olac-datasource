@@ -5,10 +5,24 @@ require('app-module-path').addPath('src/common/node_modules');
 const restify = require('restify');
 const routers = require('src/routers');
 const models = require('src/models');
+const {exec} = require('shelljs');
+const {lookup, kill} = require('ps-node');
+const cronJob = require('cron').CronJob;
+const moment = require('moment');
 
 setup().then(server => {
-    return server.listen(3000, function() {
+    return server.listen(3000, async () => {
         console.log(`${server.name} listening at ${server.url}`);
+        new cronJob(
+            '00 00 2 * * *',
+            updateLanguageData,
+            cleanupDatabase,
+            true,
+            'Australia/Melbourne'
+        );
+        await killExistingUpdaters();
+        // updateLanguageData();
+        cleanupDatabase();
     });
 });
 
@@ -38,4 +52,54 @@ function setup() {
         routers.wireUpRoutes(server);
         return server;
     }
+}
+
+async function updateLanguageData() {
+    await killExistingUpdaters();
+    let cmd = `python3 process-language-pages/generate-current-language-list.py `;
+    cmd += `--languages process-language-pages/languages.csv `;
+    cmd += `--glotto-languoids process-language-pages/languoid.csv `;
+    cmd += `--service http://localhost:3000 `;
+    cmd += `--output-folder /data `;
+    // cmd += `--mode development `;
+    cmd += `--info > process-language-pages/last-update.log 2>&1`;
+    exec(cmd, {async: true});
+}
+
+async function killExistingUpdaters() {
+    return new Promise(async (resolve, reject) => {
+        let pids = await new Promise((resolve, reject) => {
+            lookup(
+                {
+                    command: '/bin/sh',
+                    arguments: ['-c', 'python3']
+                },
+                (error, processes) => {
+                    resolve(processes.map(p => p.pid));
+                }
+            );
+        });
+        pids = [
+            ...pids,
+            ...(await new Promise((resolve, reject) => {
+                lookup({command: 'python3'}, (error, processes) => {
+                    resolve(processes.map(p => p.pid));
+                });
+            }))
+        ];
+
+        pids.forEach(p => kill(p, 'SIGKILL'));
+        resolve();
+    });
+}
+
+async function cleanupDatabase() {
+    const today = moment().format('YYYYMMDD');
+    const collections = await models.collection.findAll();
+    collections.forEach(async c => {
+        const re = /\d\d\d\d\d\d01/;
+        if (c.name !== today && !c.name.match(re)) {
+            await c.destroy();
+        }
+    });
 }
