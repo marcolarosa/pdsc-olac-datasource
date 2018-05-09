@@ -48,5 +48,5 @@ services:
             PDSC_DB_DATABASE: "paradisec"
         mem_limit: 256M
         volumes:
-            - ~/src/pdsc/olac-data:/srv/data
+            - ~/olac-data:/srv/data
         command: [ 'node', '.']
