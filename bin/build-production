@@ -3,7 +3,7 @@
 BASE="../docker"
 
 cd ../app
-yarn build:production
+npm run build:production
 
 docker build --rm=true \
     --tag "pdsc-olac-datasource/api-service-production" \
