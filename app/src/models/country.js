@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function(sequelize, DataTypes) {
-    let Language = sequelize.define(
-        'language',
+    const Country = sequelize.define(
+        'country',
         {
             id: {
                 primaryKey: true,
@@ -10,26 +10,14 @@ module.exports = function(sequelize, DataTypes) {
                 allowNull: false,
                 defaultValue: DataTypes.UUIDV4
             },
-            code: {
+            name: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
                     notEmpty: true
                 }
             },
-            date: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                validate: {
-                    notEmpty: true
-                }
-            },
-            metadata: {
-                type: DataTypes.JSON,
-                allowNull: false,
-                defaultValue: ''
-            },
-            resources: {
+            languages: {
                 type: DataTypes.JSON,
                 allowNull: false,
                 defaultValue: ''
@@ -37,10 +25,10 @@ module.exports = function(sequelize, DataTypes) {
         },
         {
             timestamps: false,
-            indexes: [{unique: true, fields: ['code', 'date']}]
+            indexes: [{unique: true, fields: ['name']}]
         }
     );
-    Language.associate = function(models) {};
+    Country.associate = function(models) {};
 
-    return Language;
+    return Country;
 };

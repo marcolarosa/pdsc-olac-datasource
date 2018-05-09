@@ -56,7 +56,7 @@ function setup() {
 
 async function updateLanguageData() {
     await killExistingUpdaters();
-    let cmd = `python3 process-language-pages/generate-current-language-list.py `;
+    let cmd = `python3 process-language-pages/scraper.py `;
     cmd += `--languages process-language-pages/languages.csv `;
     cmd += `--glotto-languoids process-language-pages/languoid.csv `;
     cmd += `--service http://localhost:3000 `;

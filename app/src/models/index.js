@@ -33,7 +33,11 @@ function getModels(force = false) {
         config.db
     );
 
-    let modules = [require('./language.js')];
+    let modules = [
+        require('./language.js'),
+        require('./region.js'),
+        require('./country.js')
+    ];
 
     // Initialize models
     modules.forEach(module => {

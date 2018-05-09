@@ -29,7 +29,7 @@ class LanguageFactory:
     def __init__(self, args):
         self.languages = args.languages
         self.languoids = args.languoids
-        self.service = "{0}/language".format(args.service)
+        self.service = args.service
         self.pages = "http://www.language-archives.org/language"
         self.output = "{0}/{1}".format(args.output, datetime.date.today().strftime('%Y%m%d'))
         if not os.path.exists(self.output):
@@ -76,7 +76,6 @@ class LanguageFactory:
         self.createCountryLists()
         self.createLanguageMap()
         self.processLanguageData()
-        # self.writeIndex()
 
     def createRegionLists(self):
         regions = {}
@@ -96,6 +95,14 @@ class LanguageFactory:
 
             regions[region.split('/')[-1:][0]] = region_data
         self.data.regions = regions
+
+        for region in regions:
+            countries = [ country['name'] for country in regions[region]]
+            data = {
+                'name': region,
+                'countries': countries
+            }
+            self.save('regions', data)
 
     def createCountryLists(self):
         countries = {}
@@ -128,6 +135,14 @@ class LanguageFactory:
                 countries[country['name']] = country
         self.data.countries = countries
         self.data.countryList = self.data.countries.keys()
+
+        for country in countries:
+            languages = [ language['code'] for language in countries[country]['languages']]
+            data = {
+                'name': country,
+                'languages': languages
+            }
+            self.save('countries', data)
 
     def createLanguageMap(self):
         for country in self.data.countryList:
@@ -194,11 +209,7 @@ class LanguageFactory:
                     continue
                 resources = self.getLanguageData(language)
                 self.data.languages[language.code] = self.data.languages[language.code]._replace(resources=resources)
-                response = self.saveLanguageData(self.data.languages[language.code])
-                if response.status_code == 200:
-                    log.info("Processing language: {0} saved".format(language.name))
-                else:
-                    log.error("Processing language: {0}: not saved".format(language.name))
+                self.saveLanguageData(self.data.languages[language.code])
                 if self.limit is not None and i >= self.limit:
                     break;
             except KeyError:
@@ -266,14 +277,13 @@ class LanguageFactory:
         }
         with open(os.path.join(self.output, "%s.json" % language.code), 'w') as f:
             f.write(json.dumps(data))
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        return requests.post(self.service, data=json.dumps(data), headers=headers);
+        self.save('languages', data)
 
-    def writeIndex(self):
-        data = {
-            'regions': self.data.regions,
-            'countries': self.data.countries,
-            'languages': self.data.languageByCode.keys().sort()
-        }
-        with open(os.path.join(self.output, "index.json"), 'w') as f:
-            f.write(json.dumps(data))
+    def save(self, endpoint, data):
+        service = "{0}/{1}".format(self.service, endpoint)
+        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        response = requests.post(service, data=json.dumps(data), headers=headers);
+        if response.status_code == 200:
+            log.info("Processing {0}: {1} saved".format(endpoint, data['name']))
+        else:
+            log.error("Processing {0}: {1}: not saved".format(endpoint, data['name']))
