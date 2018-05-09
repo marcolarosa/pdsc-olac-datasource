@@ -18,7 +18,13 @@ and makes it accessible via a simple API.
 
 The API has two routes:
  * `GET /dates` returns an array of dates of the harvested data
- * `GET /languages` returns the language data
+ * `/regions` access region data
+     - GET `/regions`: get the list of regions
+     - GET `/regions/Africa`: get the data for Africa - a list of countries is returned
+ * `/countries` access country data
+     - GET `/countries`: get the list of countries
+     - GET `/countries/Algeria`: get the data for Algeria - a list of languages is returned
+ * `/languages` access language data
      - GET `/languages/aaa`: get the latest metadata for language code aaa; doesn't include resources
      - GET `/languages/aaa/resources`: get the latest resources for language code aaa; doesn't include language metadata
      - GET `/languages/aaa?date=20180501`: get the data for language code aaa harvested on 2018-05-01; doesn't include resources

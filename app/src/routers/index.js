@@ -32,6 +32,26 @@ function getHelp(req, res, next) {
                 URI: '/dates',
                 returns: 'An array of available harvest dates'
             },
+            regions: [
+                {
+                    URI: '/regions',
+                    returns: 'The list of regions.'
+                },
+                {
+                    URI: '/regions/{region name}',
+                    returns: 'The region and its associated countries.'
+                }
+            ],
+            countries: [
+                {
+                    URI: '/countries',
+                    returns: 'The list of countries.'
+                },
+                {
+                    URI: '/countries/{country name}',
+                    returns: 'The countries and its associated languages.'
+                }
+            ],
             languages: [
                 {
                     URI: '/languages/{language code}',
