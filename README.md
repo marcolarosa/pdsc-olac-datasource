@@ -3,11 +3,14 @@
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Components](#components)
-	- [Setup](#setup)
-	- [Building the containers](#building-the-containers)
-	- [Starting an environment](#starting-an-environment)
+- [Setup](#setup)
+- [Building the containers](#building-the-containers)
+- [Starting an environment](#starting-an-environment)
+- [Stopping an environment](#stopping-an-environment)
+- [Seeing the container logs](#seeing-the-container-logs)
+- [Running the unit tests](#running-the-unit-tests)
 - [Python Harvest Tools](#python-harvest-tools)
-	- [app/process-language-pages/generate-current-language-list.py](#appprocess-language-pagesgenerate-current-language-listpy)
+	- [app/process-language-pages/scraper.py](#appprocess-language-pagesscraperpy)
 	- [app/process-language-pages/archiver.py](#appprocess-language-pagesarchiverpy)
 	- [app/process-language-pages/reprocess.py](#appprocess-language-pagesreprocesspy)
 
@@ -16,7 +19,7 @@
 This repository contains a micro-service that harvests OLAC data from http://language-archives.org
 and makes it accessible via a simple API.
 
-The API has two routes:
+The API has four routes:
  * `GET /dates` returns an array of dates of the harvested data
  * `/regions` access region data
      - GET `/regions`: get the list of regions
@@ -34,14 +37,15 @@ The API has two routes:
 ## Components
 The repository contains the api source code, docker related information and helper tools as follows:
 ```
-|- app: the API code including the python based data harvesting code
+|- app: the API code
+   |- process-language-pages: the python based data harvesting code
 |- bin: helper tools to build containers and start / stop the docker environment
 |- config: docker compose configuration files for development and production
 |- docker: dockerfiles to build the various components
 ```
 There are 3 components to this service: an nginx gateway, the api and a postgres db
 
-### Setup
+## Setup
 
 Ensure you have nodejs version 8 or above installed on your machine: see [https://nodejs.org/en/download/](https://nodejs.org/en/download/)
 
@@ -51,7 +55,7 @@ Clone the repository locally then setup the application dependencies as:
 > npm install
 ```
 
-### Building the containers
+## Building the containers
 
 ```
 > cd bin
@@ -61,29 +65,49 @@ To build the producion container
 > ./build-production
 ```
 
-### Starting an environment
+## Starting an environment
 
-To start the development environment: `cd bin && ./start development`. The src code directory is volume mounted in to the container so the service will livereload as you save files (though the file watching is only on the javascript files not the python files in the data harvester tools).
+To start the development environment:
+```
+> cd bin
+> ./start development
+```
+
+The src code directory is volume mounted in to the container so the service will livereload as you save files (though the file watching is only on the javascript files not the python files in the data harvester tools).
+
+## Stopping an environment
 
 To start the production environment:
-
 ```
+> cd bin
 > export POSTGRES_PASSWORD="some secure password"
 > ./start production
 ```
 * The POSTGRES_PASSWORD is as the name states - the password used for the paradisec database user. See the docker compose file for more information.
 
+## Seeing the container logs
+
+```
+> cd bin
+> ./do log
+Select which container logs you want to follow - most of the time `service` is the only one of interest.
+```
+
+## Running the unit tests
+
+Assuming you have a terminal open on the service logs, open up `e2e/test-endpoints.spec.js` and save the file. The tests will be run each time the file saves.
+
 ## Python Harvest Tools
 
 The python harvest tools are designed to work with python3 (which is installed in to the API container). There are 3 tools available.
 
-### app/process-language-pages/generate-current-language-list.py
+### app/process-language-pages/scraper.py
 
 The main workhorse script. This runs nightly, harvesting the data for each language on the language-archives site and then writing the data out to disk (so it's archived) in addition to submitting it to the service.
 
 An example invocation is:
 ```
-> python3 process-language-pages/generate-current-language-list.py
+> python3 process-language-pages/scraper.py
  --languages process-language-pages/languages.csv
  --glotto-languoids process-language-pages/languoid.csv
  --service http://localhost:3000
