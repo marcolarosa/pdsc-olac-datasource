@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function(sequelize, DataTypes) {
-    let Language = sequelize.define(
-        'language',
+    let Harvest = sequelize.define(
+        'harvest',
         {
             id: {
                 primaryKey: true,
@@ -10,27 +10,34 @@ module.exports = function(sequelize, DataTypes) {
                 allowNull: false,
                 defaultValue: DataTypes.UUIDV4
             },
-            code: {
-                unique: false,
+            date: {
                 type: DataTypes.STRING,
                 allowNull: false,
                 validate: {
                     notEmpty: true
                 }
+            },
+            metadata: {
+                type: DataTypes.JSON,
+                allowNull: false,
+                defaultValue: ''
+            },
+            resources: {
+                type: DataTypes.JSON,
+                allowNull: false,
+                defaultValue: ''
             }
         },
         {
             timestamps: false,
-            indexes: [{unique: true, fields: ['code']}]
+            indexes: [{unique: true, fields: ['date', 'languageId']}]
         }
     );
-    Language.associate = function(models) {
-        Language.belongsToMany(models.country, {
-            through: 'language_country',
+    Harvest.associate = function(models) {
+        Harvest.belongsTo(models.language, {
             onDelete: 'cascade'
         });
-        Language.hasMany(models.harvest);
     };
 
-    return Language;
+    return Harvest;
 };

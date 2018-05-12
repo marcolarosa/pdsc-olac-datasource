@@ -44,6 +44,7 @@
         "moment": "^2.22.1",
         "pg": "^7.4.1",
         "pg-hstore": "^2.3.2",
+        "pg-native": "^3.0.0",
         "ps-node": "^0.1.6",
         "restify": "^6.3.4",
         "restify-errors": "^5.0.0",

@@ -34,9 +34,11 @@ function getModels(force = false) {
     );
 
     let modules = [
+        require('./country.js'),
+        require('./harvest.js'),
         require('./language.js'),
-        require('./region.js'),
-        require('./country.js')
+        require('./language_country.js'),
+        require('./region.js')
     ];
 
     // Initialize models

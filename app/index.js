@@ -110,7 +110,7 @@ async function cleanup() {
         dates.forEach(async d => {
             const re = /\d\d\d\d\d\d01/;
             if (d !== today && !d.match(re)) {
-                await models.language.destroy({where: {date: d}});
+                await models.harvest.destroy({where: {date: d}});
             }
         });
     }

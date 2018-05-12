@@ -93,7 +93,12 @@ async function getRegion(req, res, next) {
         return next(new errors.BadRequestError());
     }
     const region = await models.region.findOne({
-        where: {name: req.params.region}
+        where: {name: req.params.region},
+        include: [
+            {
+                model: models.country
+            }
+        ]
     });
     if (region) {
         res.send(200, region.get());
@@ -105,7 +110,7 @@ async function getRegion(req, res, next) {
 
 async function getCountries(req, res, next) {
     const countries = await models.country.findAll();
-    res.send(200, countries.map(c => c.get('name')));
+    res.send(200, countries.map(c => c.get('name')).sort());
     return next();
 }
 
@@ -113,11 +118,14 @@ async function getCountry(req, res, next) {
     if (!req.params.country) {
         return next(new errors.BadRequestError());
     }
-    const country = await models.country.findOne({
-        where: {name: req.params.country}
+    let country = await models.country.findOne({
+        where: {name: req.params.country},
+        include: [{model: models.language, attributes: ['code'], raw: true}]
     });
     if (country) {
-        res.send(200, country.get());
+        country = country.get();
+        country.languages = country.languages.map(l => l.code).sort();
+        res.send(200, country);
         return next();
     } else {
         return next(new errors.NotFoundError());
@@ -125,7 +133,7 @@ async function getCountry(req, res, next) {
 }
 
 async function loadHarvestDates() {
-    let dates = await models.language.findAll({
+    let dates = await models.harvest.findAll({
         attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('date')), 'date']]
     });
     dates = dates.map(d => d.get('date'));
@@ -140,10 +148,16 @@ async function getLanguage(req, res, next) {
     const date = req.query.date ? req.query.date : dates.pop();
     const language = await models.language.findOne({
         where: {
-            code: req.params.code,
-            date: date
+            code: req.params.code
         },
-        attributes: ['id', 'code', 'date', 'metadata']
+        include: [
+            {
+                model: models.harvest,
+                where: {date},
+                attributes: ['date', 'metadata']
+            }
+        ],
+        attributes: ['id', 'code']
     });
     if (language) {
         res.send(200, language.get());
@@ -161,10 +175,16 @@ async function getLanguageResources(req, res, next) {
     const date = req.query.date ? req.query.date : dates.pop();
     const language = await models.language.findOne({
         where: {
-            code: req.params.code,
-            date: date
+            code: req.params.code
         },
-        attributes: ['resources']
+        include: [
+            {
+                model: models.harvest,
+                where: {date},
+                attributes: ['date', 'resources']
+            }
+        ],
+        attributes: ['id', 'code']
     });
     res.send(200, language.get());
     return next();
@@ -175,19 +195,18 @@ async function postLanguage(req, res, next) {
         return next(new errors.BadRequestError());
     }
     try {
-        const data = {...req.body};
-        delete data.resources;
-        const resources = {...req.body.resources};
-        let language = await models.language.findOrCreate({
-            where: {code: data.code, date: data.date},
-            defaults: {
-                code: data.code,
-                date: data.date,
-                metadata: data.metadata
-            }
-        });
-        language = language[0];
-        language.update({metadata: data, resources});
+        const data = {
+            code: req.body.code,
+            date: req.body.date,
+            metadata: {...req.body},
+            resources: {...req.body.resources}
+        };
+        delete data.metadata.resources;
+
+        let language = await createLanguageEntry(data.code);
+        let harvest = await createHarvestEntry(data, language);
+        harvest.update({metadata: data.metadata, resources: data.resources});
+        language = await lookupNewEntry(data.code, data.date);
         res.send(200, language.get());
         return next();
     } catch (error) {
@@ -196,6 +215,46 @@ async function postLanguage(req, res, next) {
         res.send(200);
         return next();
     }
+
+    async function createLanguageEntry(code) {
+        const language = await models.language.findOrCreate({
+            where: {code},
+            defaults: {
+                code
+            }
+        });
+        return language[0];
+    }
+
+    async function createHarvestEntry(data, language) {
+        const harvest = await models.harvest.findOrCreate({
+            where: {
+                date: data.date,
+                languageId: language.get('id')
+            },
+            defaults: {
+                date: data.date,
+                languageId: language.get('id'),
+                metadata: data.metadata,
+                resources: data.resources
+            }
+        });
+        return harvest[0];
+    }
+
+    async function lookupNewEntry(code, date) {
+        return await models.language.findOne({
+            where: {code},
+            include: [
+                {
+                    model: models.harvest,
+                    where: {date},
+                    attributes: ['date', 'metadata']
+                }
+            ],
+            attributes: ['id', 'code']
+        });
+    }
 }
 
 async function postRegions(req, res, next) {
@@ -203,16 +262,9 @@ async function postRegions(req, res, next) {
         return next(new errors.BadRequestError());
     }
     try {
-        const data = {...req.body};
-        let region = await models.region.findOrCreate({
-            where: {name: data.name},
-            defaults: {
-                name: data.name,
-                countries: data.countries
-            }
-        });
-        region = region[0];
-        region.update({countries: data.countries});
+        let region = await createRegionEntry(req.body.name);
+        await createCountryEntries(req.body.countries, region);
+        region = await lookupNewEntry(region.get('name'));
         res.send(200, region.get());
         return next();
     } catch (error) {
@@ -221,6 +273,35 @@ async function postRegions(req, res, next) {
         res.send(200);
         return next();
     }
+
+    async function createRegionEntry(name) {
+        const region = await models.region.findOrCreate({
+            where: {name},
+            defaults: {name}
+        });
+        return region[0];
+    }
+
+    async function createCountryEntries(countries, region) {
+        let data;
+        for (let country of req.body.countries) {
+            data = {
+                name: country,
+                regionId: region.get('id')
+            };
+            await models.country.findOrCreate({
+                where: data,
+                defaults: data
+            });
+        }
+    }
+
+    async function lookupNewEntry(region) {
+        return await models.region.findOne({
+            where: {name: region},
+            include: [{model: models.country}]
+        });
+    }
 }
 
 async function postCountries(req, res, next) {
@@ -228,16 +309,9 @@ async function postCountries(req, res, next) {
         return next(new errors.BadRequestError());
     }
     try {
-        const data = {...req.body};
-        let country = await models.country.findOrCreate({
-            where: {name: data.name},
-            defaults: {
-                name: data.name,
-                languages: data.languages
-            }
-        });
-        country = country[0];
-        country.update({languages: data.languages});
+        let country = await createCountryEntry(req.body.name);
+        await createLanguageEntries(req.body.languages, country);
+        country = await lookupNewEntry(country.get('name'));
         res.send(200, country.get());
         return next();
     } catch (error) {
@@ -245,6 +319,40 @@ async function postCountries(req, res, next) {
         console.log(req.body);
         res.send(200);
         return next();
+    }
+
+    async function createCountryEntry(name) {
+        const country = await models.country.findOrCreate({
+            where: {name},
+            defaults: {name}
+        });
+        return country[0];
+    }
+
+    async function createLanguageEntries(languages, country) {
+        let data, language;
+        for (let code of languages) {
+            language = await models.language.findOrCreate({
+                where: {code},
+                defaults: {code}
+            });
+            language = language[0];
+            data = {
+                languageId: language.get('id'),
+                countryId: country.get('id')
+            };
+            await models.language_country.findOrCreate({
+                where: data,
+                defaults: data
+            });
+        }
+    }
+
+    async function lookupNewEntry(name) {
+        return await models.country.findOne({
+            where: {name},
+            include: [{model: models.language}]
+        });
     }
 }
 

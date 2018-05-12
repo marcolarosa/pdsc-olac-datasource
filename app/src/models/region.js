@@ -16,11 +16,6 @@ module.exports = function(sequelize, DataTypes) {
                 validate: {
                     notEmpty: true
                 }
-            },
-            countries: {
-                type: DataTypes.JSON,
-                allowNull: false,
-                defaultValue: ''
             }
         },
         {
@@ -28,7 +23,9 @@ module.exports = function(sequelize, DataTypes) {
             indexes: [{unique: true, fields: ['name']}]
         }
     );
-    Region.associate = function(models) {};
+    Region.associate = function(models) {
+        Region.hasMany(models.country, {onDelete: 'cascade'});
+    };
 
     return Region;
 };

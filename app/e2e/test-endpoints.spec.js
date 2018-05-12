@@ -5,51 +5,42 @@ const chakram = require('chakram');
 const expect = chai.expect;
 const moment = require('moment');
 const models = require('../src/models').getModels();
+const {flattenDeep} = require('lodash');
 const today = moment().format('YYYYMMDD');
 const uri = 'http://localhost:3000';
 
 describe(`test endpoints - `, () => {
-    beforeEach(async () => {});
+    let region, country, language, harvest;
+
+    beforeEach(async () => {
+        try {
+            region = await setup();
+        } catch (e) {
+            console.log(e);
+        }
+    });
     afterEach(async () => {
+        await models.harvest.destroy({where: {}});
         await models.language.destroy({where: {}});
+        await models.language_country.destroy({where: {}});
         await models.region.destroy({where: {}});
         await models.country.destroy({where: {}});
     });
 
     it('should be able to get a list of harvest dates', async () => {
-        await models.language.create({
-            code: 'aaa',
-            date: today,
-            data: {}
-        });
-
         let r = await chakram.get(`${uri}/dates`);
         let response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.length).to.equal(1);
-        expect(response.body[0]).to.equal(today);
-        await models.language.destroy({where: {}});
-
-        for (let date of ['20170401', '20180501', '20180203']) {
-            const data = {};
-            await models.language.create({code: 'aaa', date, data});
-        }
-        r = await chakram.get(`${uri}/dates`);
-        response = r.response;
-        expect(response.statusCode).to.equal(200);
-        expect(response.body.length).to.equal(3);
+        expect(response.body.length).to.equal(4);
         expect(response.body).to.deep.equal([
             '20170401',
             '20180203',
-            '20180501'
+            '20180501',
+            today
         ]);
     });
 
     it('should be able to get a list of regions', async () => {
-        await models.region.create({
-            name: 'Africa',
-            countries: ['Algeria', 'Angola']
-        });
         const r = await chakram.get(`${uri}/regions`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
@@ -57,14 +48,14 @@ describe(`test endpoints - `, () => {
     });
 
     it('should be able to get the data for a specific region', async () => {
-        const region = await models.region.create({
-            name: 'Africa',
-            countries: ['Algeria', 'Angola']
-        });
         const r = await chakram.get(`${uri}/regions/Africa`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body).to.deep.equal(region.get());
+        expect(response.body.countries.length).to.equal(2);
+        expect(response.body.countries.map(c => c.name).sort()).to.deep.equal([
+            'Algeria',
+            'Angola'
+        ]);
     });
 
     it('should return not found error looking for an unknown region', async () => {
@@ -72,26 +63,20 @@ describe(`test endpoints - `, () => {
         const response = r.response;
         expect(response.statusCode).to.equal(404);
     });
+
     it('should be able to get a list of countries', async () => {
-        await models.country.create({
-            name: 'Algeria',
-            languages: ['arq', 'aao']
-        });
         const r = await chakram.get(`${uri}/countries`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body).to.deep.equal(['Algeria']);
+        expect(response.body).to.deep.equal(['Algeria', 'Angola']);
     });
 
     it('should be able to get the data for a specific country', async () => {
-        const country = await models.country.create({
-            name: 'Algeria',
-            languages: ['arq', 'aao']
-        });
         const r = await chakram.get(`${uri}/countries/Algeria`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body).to.deep.equal(country.get());
+        expect(response.body.languages.length).to.equal(1);
+        expect(response.body.languages).to.deep.equal(['aaa']);
     });
 
     it('should return not found error looking for an unknown country', async () => {
@@ -101,44 +86,42 @@ describe(`test endpoints - `, () => {
     });
 
     it('should be able to get the latest data for a language', async () => {
-        const language = await models.language.create({
-            code: 'aaa',
-            date: today,
-            metadata: {},
-            resources: {}
-        });
         const r = await chakram.get(`${uri}/languages/aaa`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
         expect(response.body.code).to.equal('aaa');
-        expect(response.body.date).to.equal(today);
+        expect(response.body.harvests.length).to.equal(1);
+        harvest = response.body.harvests.filter(h => h.date === today);
+        expect(harvest.length).to.equal(1);
+        harvest = harvest[0];
+        expect(harvest.metadata).to.deep.equal({});
+        expect(harvest.resources).to.be.undefined;
     });
 
     it('should be able to get language data at a given date', async () => {
-        const language = await models.language.create({
-            code: 'aaa',
-            date: '20180501',
-            metadata: {},
-            resources: {}
-        });
         const r = await chakram.get(`${uri}/languages/aaa?date=20180501`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
         expect(response.body.code).to.equal('aaa');
-        expect(response.body.date).to.equal('20180501');
+        expect(response.body.harvests.length).to.equal(1);
+        harvest = response.body.harvests.filter(h => h.date === '20180501');
+        expect(harvest.length).to.equal(1);
+        harvest = harvest[0];
+        expect(harvest.metadata).to.deep.equal({});
+        expect(harvest.resources).to.be.undefined;
     });
 
-    it('should be able to get the metadata for a language', async () => {
-        const language = await models.language.create({
-            code: 'aaa',
-            date: today,
-            metadata: {},
-            resources: {}
-        });
+    it('should be able to get the resources for a language', async () => {
         const r = await chakram.get(`${uri}/languages/aaa/resources`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.resources).to.deep.equal({});
+        expect(response.body.code).to.equal('aaa');
+        expect(response.body.harvests.length).to.equal(1);
+        harvest = response.body.harvests.filter(h => h.date === today);
+        expect(harvest.length).to.equal(1);
+        harvest = harvest[0];
+        expect(harvest.resources).to.deep.equal({});
+        expect(harvest.metadata).to.be.undefined;
     });
 
     it('should return not found error looking for an unknown country', async () => {
@@ -149,16 +132,20 @@ describe(`test endpoints - `, () => {
 
     it('should be able to post a blob of language data', async () => {
         const data = {
-            code: 'aaa',
+            code: 'bbb',
             date: today,
             resources: {}
         };
         const r = await chakram.post(`${uri}/languages`, data);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.code).to.equal(data.code);
-        expect(response.body.date).to.equal(data.date);
-        expect(response.body.resources).to.deep.equal(data.resources);
+        expect(response.body.code).to.equal('bbb');
+        expect(response.body.harvests.length).to.equal(1);
+        harvest = response.body.harvests.filter(h => h.date === today);
+        expect(harvest.length).to.equal(1);
+        harvest = harvest[0];
+        expect(harvest.metadata).to.deep.equal({code: 'bbb', date: today});
+        expect(harvest.resources).to.be.undefined;
     });
 
     it('should be able to post a blob of region data', async () => {
@@ -169,8 +156,11 @@ describe(`test endpoints - `, () => {
         const r = await chakram.post(`${uri}/regions`, data);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.name).to.equal(data.name);
-        expect(response.body.countries).to.deep.equal(data.countries);
+        expect(response.body.countries.length).to.equal(2);
+        expect(response.body.countries.map(c => c.name).sort()).to.deep.equal([
+            'Algeria',
+            'Angola'
+        ]);
     });
 
     it('should be able to post a blob of country data', async () => {
@@ -181,14 +171,14 @@ describe(`test endpoints - `, () => {
         const r = await chakram.post(`${uri}/countries`, data);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.name).to.equal(data.name);
-        expect(response.body.languages).to.deep.equal(data.languages);
+        expect(response.body.languages.length).to.equal(3);
+        let languages = response.body.languages.map(l => l.code).sort();
+        expect(languages).to.deep.equal(['aaa', 'aao', 'arq']);
     });
 
     it('should fail with bad request error - missing code', async () => {
         const data = {
             date: today,
-            metadata: {},
             resources: {}
         };
         const r = await chakram.post(`${uri}/languages`, data);
@@ -199,7 +189,6 @@ describe(`test endpoints - `, () => {
     it('should fail with bad request error - missing date', async () => {
         const data = {
             code: 'aaa',
-            metadata: {},
             resources: {}
         };
         const r = await chakram.post(`${uri}/languages`, data);
@@ -207,3 +196,54 @@ describe(`test endpoints - `, () => {
         expect(response.statusCode).to.equal(400);
     });
 });
+
+async function setup() {
+    let region = await models.region.create(
+        {
+            name: 'Africa',
+            countries: [{name: 'Algeria'}, {name: 'Angola'}]
+        },
+        {
+            include: [models.country]
+        }
+    );
+
+    let language = await models.language.create(
+        {
+            code: 'aaa',
+            harvests: [{date: today, metadata: {}, resources: {}}]
+        },
+        {include: [models.harvest]}
+    );
+    for (let country of ['Algeria', 'Angola']) {
+        country = await models.country.findOne({where: {name: country}});
+        await models.language_country.create({
+            languageId: language.get('id'),
+            countryId: country.get('id')
+        });
+    }
+
+    for (let date of ['20170401', '20180501', '20180203']) {
+        await models.harvest.create({
+            languageId: language.get('id'),
+            date: date,
+            metadata: {},
+            resources: {}
+        });
+    }
+
+    return await models.region.findOne({
+        where: {name: 'Africa'},
+        include: [
+            {
+                model: models.country,
+                include: [
+                    {
+                        model: models.language,
+                        include: [{model: models.harvest}]
+                    }
+                ]
+            }
+        ]
+    });
+}

@@ -16,11 +16,6 @@ module.exports = function(sequelize, DataTypes) {
                 validate: {
                     notEmpty: true
                 }
-            },
-            languages: {
-                type: DataTypes.JSON,
-                allowNull: false,
-                defaultValue: ''
             }
         },
         {
@@ -28,7 +23,13 @@ module.exports = function(sequelize, DataTypes) {
             indexes: [{unique: true, fields: ['name']}]
         }
     );
-    Country.associate = function(models) {};
+    Country.associate = function(models) {
+        Country.belongsTo(models.region, {onDelete: 'cascade'});
+        Country.belongsToMany(models.language, {
+            through: 'language_country',
+            onDelete: 'cascade'
+        });
+    };
 
     return Country;
 };
