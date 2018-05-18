@@ -2,8 +2,8 @@
 
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
-const spawn = require('child_process').spawn;
-let node;
+const {spawn, spawnSync} = require('child_process');
+let nodeProcess, npmInstallProcess;
 
 let sources = {
     scripts: {
@@ -67,7 +67,7 @@ function integrationTestManager(done) {
 
 function serverManager(done) {
     gulp.watch(
-        ['./index.js', `${sources.scripts.path}`],
+        ['./index.js', `${sources.scripts.path}`, 'webpack.develop.js'],
         {
             ignoreInitial: false,
             ignored: ['**/*.spec.js']
@@ -76,9 +76,19 @@ function serverManager(done) {
     );
     done();
     function reloadServer(done) {
-        if (node) node.kill();
-        node = spawn('node', ['index.js'], {stdio: 'inherit'});
-        node.on('close', function(code) {
+        spawnSync(
+            './node_modules/webpack/bin/webpack.js',
+            ['--config', 'webpack.develop.js'],
+            {stdio: 'inherit'}
+        );
+        npmInstallProcess = spawn('npm', ['install'], {
+            stdio: 'inherit',
+            cwd: './dist'
+        });
+        if (nodeProcess) nodeProcess.kill();
+        if (npmInstallProcess) npmInstallProcess.kill();
+        nodeProcess = spawn('node', ['./dist/index.js'], {stdio: 'inherit'});
+        nodeProcess.on('close', function(code) {
             if (code === 8) {
                 gulp.log('Error detected, waiting for changes...');
             }
