@@ -1,5 +1,5 @@
 'use strict';
-
+require('babel-polyfill');
 require('app-module-path/cwd');
 require('app-module-path').addPath('src/common/node_modules');
 const restify = require('restify');
