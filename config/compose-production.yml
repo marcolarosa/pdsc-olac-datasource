@@ -21,8 +21,6 @@ services:
         volumes:
             - PDSC_DEVELOPMENT_DB_VOLUME:/postgresql
         restart: unless-stopped
-        ports:
-            - 5432:5432
 
     api_gateway:
         image: pdsc-olac-datasource/nginx
