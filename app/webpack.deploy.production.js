@@ -15,10 +15,10 @@ const targetPath = path.resolve(
 
 let copyFiles = [
     'archiver.py',
-    'generate-current-language-list.py',
     'languages.csv',
     'languoid.csv',
     'reprocess.py',
+    'scraper.py',
     'src/__init__.py',
     'src/LanguageFactory.py'
 ];
