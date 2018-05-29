@@ -17,6 +17,7 @@ services:
             POSTGRES_DB: "paradisec"
             PGDATA: /postgresql/data
         mem_limit: 64M
+        restart: always
         volumes:
             - PDSC_DEVELOPMENT_DB_VOLUME:/postgresql
         restart: unless-stopped
@@ -31,13 +32,13 @@ services:
             TERM: "xterm-256color"
             NODE_ENV: "development"
         mem_limit: 256M
-        restart: unless-stopped
+        restart: always
         ports:
             - 8080:80
 
     api_service:
         image: pdsc-olac-datasource/api-service-production
-        hostname: api_gateway
+        hostname: api_service
         tty: true
         environment:
             TERM: "xterm-256color"
@@ -49,7 +50,7 @@ services:
             PDSC_DB_PASSWORD: "$POSTGRES_PASSWORD"
             PDSC_DB_DATABASE: "paradisec"
         mem_limit: 256M
-        restart: unless-stopped
+        restart: always
         volumes:
             - ~/olac-data:/srv/data
         command: [ 'node', '.']

@@ -35,7 +35,7 @@ services:
 
     api_service:
         image: pdsc-olac-datasource/api-service
-        hostname: api_gateway
+        hostname: api_service
         tty: true
         environment:
             TERM: "xterm-256color"
