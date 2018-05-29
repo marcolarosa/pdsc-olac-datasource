@@ -19,6 +19,7 @@ services:
         mem_limit: 64M
         volumes:
             - PDSC_DEVELOPMENT_DB_VOLUME:/postgresql
+        restart: unless-stopped
         ports:
             - 5432:5432
 
@@ -30,6 +31,7 @@ services:
             TERM: "xterm-256color"
             NODE_ENV: "development"
         mem_limit: 256M
+        restart: unless-stopped
         ports:
             - 8080:80
 
@@ -47,6 +49,7 @@ services:
             PDSC_DB_PASSWORD: "$POSTGRES_PASSWORD"
             PDSC_DB_DATABASE: "paradisec"
         mem_limit: 256M
+        restart: unless-stopped
         volumes:
             - ~/olac-data:/srv/data
         command: [ 'node', '.']
