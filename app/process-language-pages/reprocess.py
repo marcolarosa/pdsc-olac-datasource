@@ -47,7 +47,7 @@ if __name__ == "__main__":
         tar.close()
 
     path = "{0}/{1}".format(args.data, args.date)
-    service = "{0}/language".format(args.service)
+    service = "{0}/languages".format(args.service)
     for file in os.listdir(path):
         with open("{0}/{1}".format(path, file)) as f:
             log.info("Processing: {0}".format(file))
