@@ -100,9 +100,11 @@ async function getRegion(req, res, next) {
     }
     const region = await models.region.findOne({
         where: {name: req.params.region},
+        attributes: ['name'],
         include: [
             {
-                model: models.country
+                model: models.country,
+                attributes: ['name']
             }
         ]
     });
@@ -126,6 +128,7 @@ async function getCountry(req, res, next) {
     }
     let country = await models.country.findOne({
         where: {name: req.params.country},
+        attributes: ['name'],
         include: [{model: models.language, attributes: ['code'], raw: true}]
     });
     if (country) {
