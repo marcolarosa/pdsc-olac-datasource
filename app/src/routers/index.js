@@ -4,6 +4,12 @@ const models = require('../models').getModels();
 const moment = require('moment');
 const errors = require('restify-errors');
 const Sequelize = require('sequelize');
+const fs = require('fs');
+const util = require('util');
+const stat = util.promisify(fs.stat);
+const mkdir = util.promisify(fs.mkdir);
+const write = util.promisify(fs.writeFile);
+const read = util.promisify(fs.readFile);
 
 module.exports = {
     wireUpRoutes,
@@ -173,7 +179,7 @@ async function getLanguageResources(req, res, next) {
     }
     const dates = await loadHarvestDates();
     const date = req.query.date ? req.query.date : dates.pop();
-    const language = await models.language.findOne({
+    let language = await models.language.findOne({
         where: {
             code: req.params.code
         },
@@ -186,7 +192,17 @@ async function getLanguageResources(req, res, next) {
         ],
         attributes: ['id', 'code']
     });
-    res.send(200, language.get());
+    const harvests = await Promise.all(
+        language.get('harvests').map(async harvest => {
+            const resources = await read(harvest.resources);
+            return {
+                date: harvest.date,
+                resources: JSON.parse(resources)
+            };
+        })
+    );
+    language.harvests = harvests;
+    res.send(200, harvests);
     return next();
 }
 
@@ -198,14 +214,19 @@ async function postLanguage(req, res, next) {
         const data = {
             code: req.body.code,
             date: req.body.date,
-            metadata: {...req.body},
-            resources: {...req.body.resources}
+            metadata: {...req.body}
         };
+
         delete data.metadata.resources;
+
+        await prepareRepository({date: req.body.date});
 
         let language = await createLanguageEntry(data.code);
         let harvest = await createHarvestEntry(data, language);
-        harvest.update({metadata: data.metadata, resources: data.resources});
+        const repo = process.env.PDSC_HARVEST_REPOSITORY;
+        const datafile = `${repo}/${req.body.date}/${req.body.code}.json`;
+        await save({datafile, resources: req.body.resources});
+        harvest.update({metadata: data.metadata, resources: datafile});
         language = await lookupNewEntry(data.code, data.date);
         res.send(200, language.get());
         return next();
@@ -214,6 +235,25 @@ async function postLanguage(req, res, next) {
         console.log(req.body);
         res.send(200);
         return next();
+    }
+
+    async function save({datafile, resources}) {
+        let result = await write(datafile, JSON.stringify(resources));
+    }
+
+    async function prepareRepository({date}) {
+        const folder = `${process.env.PDSC_HARVEST_REPOSITORY}/${date}`;
+        try {
+            let result = await stat(folder);
+            if (!result.isDirectory()) {
+                console.error(`${folder} exists but is not a folder.`);
+                throw new Error(errors.InternalServerError);
+            }
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                await mkdir(folder);
+            }
+        }
     }
 
     async function createLanguageEntry(code) {
@@ -227,19 +267,38 @@ async function postLanguage(req, res, next) {
     }
 
     async function createHarvestEntry(data, language) {
-        const harvest = await models.harvest.findOrCreate({
-            where: {
-                date: data.date,
-                languageId: language.get('id')
-            },
-            defaults: {
+        try {
+            let harvest = await models.harvest.findOne({
+                where: {
+                    date: data.date,
+                    languageId: language.get('id')
+                }
+            });
+            if (harvest) return harvest;
+            harvest = await models.harvest.create({
                 date: data.date,
                 languageId: language.get('id'),
                 metadata: data.metadata,
                 resources: data.resources
-            }
-        });
-        return harvest[0];
+            });
+            return harvest;
+        } catch (error) {
+            console.log(error);
+        }
+
+        // const harvest = await models.harvest.findOrCreate({
+        //     where: {
+        //         date: data.date,
+        //         languageId: language.get('id')
+        //     },
+        //     defaults: {
+        //         date: data.date,
+        //         languageId: language.get('id'),
+        //         metadata: data.metadata,
+        //         resources: data.resources
+        //     }
+        // });
+        // return harvest[0];
     }
 
     async function lookupNewEntry(code, date) {

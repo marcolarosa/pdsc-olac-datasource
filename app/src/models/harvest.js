@@ -18,12 +18,12 @@ module.exports = function(sequelize, DataTypes) {
                 }
             },
             metadata: {
-                type: DataTypes.JSON,
+                type: DataTypes.JSONB,
                 allowNull: false,
                 defaultValue: ''
             },
             resources: {
-                type: DataTypes.JSON,
+                type: DataTypes.STRING,
                 allowNull: false,
                 defaultValue: ''
             }
