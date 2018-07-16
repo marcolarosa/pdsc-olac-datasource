@@ -9,7 +9,12 @@ const {lookup, kill} = require('ps-node');
 const cronJob = require('cron').CronJob;
 const moment = require('moment');
 const {loadHarvestDates, wireUpRoutes} = require('./src/routers');
+const fs = require('fs');
+const util = require('util');
+const stat = util.promisify(fs.stat);
+const mkdir = util.promisify(fs.mkdir);
 
+prepareRepository();
 setup().then(server => {
     return server.listen(3000, async () => {
         console.log(`${server.name} listening at ${server.url}`);
@@ -41,6 +46,7 @@ function setup() {
 
     function createServer() {
         const server = restify.createServer();
+        server.server.timeout = 60000 * 5;
         server.name = 'OLAC Datasource';
         server.use(restify.plugins.acceptParser(server.acceptable));
         server.use(restify.plugins.dateParser());
@@ -51,6 +57,22 @@ function setup() {
         server.use(restify.plugins.conditionalRequest());
         wireUpRoutes(server);
         return server;
+    }
+}
+
+async function prepareRepository() {
+    const folder = process.env.PDSC_HARVEST_REPOSITORY;
+    try {
+        let result = await stat(folder);
+        if (!result.isDirectory()) {
+            console.error(`${folder} exists but is not a folder.`);
+            console.error('Exiting now');
+            process.exit();
+        }
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            await mkdir(process.env.PDSC_HARVEST_REPOSITORY);
+        }
     }
 }
 
