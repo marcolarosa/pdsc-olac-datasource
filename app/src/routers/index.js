@@ -234,8 +234,6 @@ async function postLanguage(req, res, next) {
         res.send(200, language.get());
         return next();
     } catch (error) {
-        console.log(error);
-        console.log(req.body);
         res.send(200);
         return next();
     }

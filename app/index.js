@@ -26,7 +26,7 @@ setup().then(server => {
             'Australia/Melbourne'
         );
         await killExistingUpdaters();
-        // updateLanguageData();
+        updateLanguageData();
         cleanup();
     });
 });
@@ -61,7 +61,7 @@ function setup() {
 }
 
 async function prepareRepository() {
-    const folder = process.env.PDSC_HARVEST_REPOSITORY;
+    let folder = process.env.PDSC_HARVEST_REPOSITORY;
     try {
         let result = await stat(folder);
         if (!result.isDirectory()) {
@@ -71,7 +71,21 @@ async function prepareRepository() {
         }
     } catch (error) {
         if (error.code === 'ENOENT') {
-            await mkdir(process.env.PDSC_HARVEST_REPOSITORY);
+            await mkdir(folder);
+        }
+    }
+
+    folder = process.env.PDSC_HARVEST_DOWNLOAD;
+    try {
+        let result = await stat(folder);
+        if (!result.isDirectory()) {
+            console.error(`${folder} exists but is not a folder.`);
+            console.error('Exiting now');
+            process.exit();
+        }
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            await mkdir(folder);
         }
     }
 }
@@ -82,9 +96,9 @@ async function updateLanguageData() {
     cmd += `--languages process-language-pages/languages.csv `;
     cmd += `--glotto-languoids process-language-pages/languoid.csv `;
     cmd += `--service http://localhost:3000 `;
-    cmd += `--output-folder /srv/data `;
+    cmd += `--output-folder ${process.env.PDSC_HARVEST_DOWNLOAD} `;
     // cmd += `--mode development `;
-    cmd += `--info > process-language-pages/last-update.log 2>&1`;
+    cmd += `--info > ${process.env.PDSC_HARVEST_DOWNLOAD}/last-update.log 2>&1`;
     exec(cmd, {async: true});
 }
 
@@ -121,8 +135,10 @@ async function cleanup() {
 
     function archiveData() {
         let cmd = `python3 process-language-pages/archiver.py `;
-        cmd += `--data /srv/data `;
-        cmd += `--info > process-language-pages/archiver.log 2>&1`;
+        cmd += `--data ${process.env.PDSC_HARVEST_DOWNLOAD} `;
+        cmd += `--info > ${
+            process.env.PDSC_HARVEST_DOWNLOAD
+        }/archiver.log 2>&1`;
         exec(cmd, {async: true});
     }
 

@@ -29,6 +29,7 @@ services:
             PDSC_DB_USER: "paradisec"
             PDSC_DB_PASSWORD: "paradisec"
             PDSC_DB_DATABASE: "paradisec"
+            PDSC_HARVEST_DOWNLOAD: "/srv/data/scrape"
             PDSC_HARVEST_REPOSITORY: "/srv/data/repository"
         mem_limit: 256M
         volumes:
