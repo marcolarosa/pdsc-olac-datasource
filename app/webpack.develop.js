@@ -40,5 +40,13 @@ module.exports = {
                 }
             }
         ]
+    },
+    resolve: {
+        alias: {
+            src: path.resolve(__dirname, 'src'),
+            controllers: path.resolve(__dirname, 'src/controllers'),
+            routers: path.resolve(__dirname, 'src/routers'),
+            models: path.resolve(__dirname, 'src/models')
+        }
     }
 };
