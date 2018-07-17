@@ -3,6 +3,7 @@
 const gulp = require('gulp');
 const mocha = require('gulp-mocha');
 const {spawn, spawnSync} = require('child_process');
+const {throttle} = require('lodash');
 let nodeProcess, npmInstallProcess;
 
 let sources = {
@@ -72,7 +73,7 @@ function serverManager(done) {
             ignoreInitial: false,
             ignored: ['**/*.spec.js']
         },
-        reloadServer
+        throttle(reloadServer, 10000, {leading: true, trailing: false})
     );
     done();
     function reloadServer(done) {
