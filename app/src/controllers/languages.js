@@ -100,10 +100,15 @@ async function postLanguage(req, res, next) {
 
         await prepareRepository({date: req.body.date});
 
+        debugInfo(`Create language entry ${data.code}`);
         let language = await createLanguageEntry(data.code);
         let harvest = await createHarvestEntry(data, language);
+
+        debugInfo(`Create harvest entry for date ${req.body.date}`);
         const repo = process.env.PDSC_HARVEST_REPOSITORY;
         const datafile = `${repo}/${req.body.date}/${req.body.code}.json`;
+
+        debugInfo(`Save resources file`);
         await save({datafile, resources: req.body.resources});
         harvest.update({metadata: data.metadata, resources: datafile});
         language = await lookupNewEntry(data.code, data.date);

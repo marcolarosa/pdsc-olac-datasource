@@ -44,7 +44,9 @@ async function postRegions(req, res, next) {
         return next(new errors.BadRequestError());
     }
     try {
+        debugInfo(`Create region ${req.body.name}`);
         let region = await createRegionEntry(req.body.name);
+        debugInfo(`Create region country entries and mappings`);
         await createCountryEntries(req.body.countries, region);
         region = await lookupNewEntry(region.get('name'));
         res.send(200, region.get());

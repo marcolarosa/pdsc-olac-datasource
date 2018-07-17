@@ -41,7 +41,9 @@ async function postCountries(req, res, next) {
         return next(new errors.BadRequestError());
     }
     try {
+        debugInfo(`Create country ${req.body.name}`);
         let country = await createCountryEntry(req.body.name);
+        debugInfo(`Create country language entries and mappings`);
         await createLanguageEntries(req.body.languages, country);
         country = await lookupNewEntry(country.get('name'));
         res.send(200, country.get());
