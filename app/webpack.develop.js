@@ -1,30 +1,30 @@
-'use strict';
+"use strict";
 
-const path = require('path');
-const webpack = require('webpack');
-const nodeExternals = require('webpack-node-externals');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const nodeExternals = require("webpack-node-externals");
+const CleanWebpackPlugin = require("clean-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-const targetPath = path.resolve(__dirname, './dist');
+const targetPath = path.resolve(__dirname, "./dist");
 
 module.exports = {
-    entry: './index.js',
-    target: 'node',
+    entry: "./index.js",
+    target: "node",
     node: false,
-    mode: 'development',
-    devtool: 'source-map',
+    mode: "development",
+    devtool: "source-map",
     output: {
         path: targetPath,
-        filename: 'index.js'
+        filename: "index.js"
     },
     plugins: [
         new CleanWebpackPlugin([`${targetPath}/*.*`], {
             watch: true,
-            exclude: ['./dist/node_modules']
+            exclude: ["./dist/node_modules"]
         }),
-        new webpack.DefinePlugin({'global.GENTLY': false}),
-        new CopyWebpackPlugin([{from: 'package.json', to: targetPath}], {})
+        new webpack.DefinePlugin({ "global.GENTLY": false }),
+        new CopyWebpackPlugin([{ from: "package.json", to: targetPath }], {})
     ],
     externals: [nodeExternals()],
     module: {
@@ -33,9 +33,9 @@ module.exports = {
                 test: /\.js$/,
                 exclude: /(node_modules)/,
                 use: {
-                    loader: 'babel-loader',
+                    loader: "babel-loader",
                     options: {
-                        presets: ['@babel/preset-env']
+                        presets: ["@babel/preset-env"]
                     }
                 }
             }
@@ -43,10 +43,10 @@ module.exports = {
     },
     resolve: {
         alias: {
-            src: path.resolve(__dirname, 'src'),
-            controllers: path.resolve(__dirname, 'src/controllers'),
-            routers: path.resolve(__dirname, 'src/routers'),
-            models: path.resolve(__dirname, 'src/models')
+            src: path.resolve(__dirname, "src"),
+            controllers: path.resolve(__dirname, "src/controllers"),
+            routers: path.resolve(__dirname, "src/routers"),
+            models: path.resolve(__dirname, "src/models")
         }
     }
 };
