@@ -55,7 +55,10 @@ if __name__ == "__main__":
         with open("{0}/{1}".format(path, file)) as f:
             i += 1
             log.info("Processing: {0}".format(file))
-            data = json.loads(f.read(), encoding="utf-8")
+            try:
+                data = json.loads(f.read(), encoding="utf-8")
+            except:
+                continue
             if 'date' not in data:
                 data['date'] = args.date
             headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
