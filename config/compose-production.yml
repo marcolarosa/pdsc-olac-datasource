@@ -12,8 +12,8 @@ services:
         environment:
             TERM: "xterm-256color"
             NODE_ENV: "development"
-        mem_limit: 256M
-        restart: always
+        # mem_limit: 256M
+        restart: always 
         ports:
             - 8080:80
 
@@ -32,7 +32,7 @@ services:
             PDSC_DB_DATABASE: "paradisec"
             PDSC_HARVEST_DOWNLOAD: "/srv/data/scrape"
             PDSC_HARVEST_REPOSITORY: "/srv/data/repository"
-        mem_limit: 256M
+        # mem_limit: 1024M
         restart: always
         volumes:
             - /srv/data/olac-datasource:/srv/data
@@ -49,7 +49,7 @@ services:
             POSTGRES_USER: "paradisec"
             POSTGRES_DB: "paradisec"
             PGDATA: /postgresql/data
-        mem_limit: 64M
+        # mem_limit: 1024M
         restart: always
         volumes:
             - PDSC_DEVELOPMENT_DB_VOLUME:/postgresql
