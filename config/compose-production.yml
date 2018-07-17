@@ -30,8 +30,8 @@ services:
             PDSC_DB_USER: "paradisec"
             PDSC_DB_PASSWORD: "$POSTGRES_PASSWORD"
             PDSC_DB_DATABASE: "paradisec"
-            PDSC_HARVEST_DOWNLOAD: "/srv/data/olac-datasource/scrape"
-            PDSC_HARVEST_REPOSITORY: "/srv/data/olac-datasource/repository"
+            PDSC_HARVEST_DOWNLOAD: "/srv/data/scrape"
+            PDSC_HARVEST_REPOSITORY: "/srv/data/repository"
         mem_limit: 256M
         restart: always
         volumes:
