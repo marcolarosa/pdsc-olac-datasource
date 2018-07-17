@@ -26,7 +26,7 @@ setup().then(server => {
             'Australia/Melbourne'
         );
         await killExistingUpdaters();
-        updateLanguageData();
+        // updateLanguageData();
         cleanup();
     });
 });
