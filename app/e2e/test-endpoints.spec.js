@@ -8,6 +8,7 @@ const models = require('../src/models').getModels();
 const {flattenDeep} = require('lodash');
 const today = moment().format('YYYYMMDD');
 const uri = 'http://localhost:3000';
+const {setup, cleanup} = require('./utils');
 
 describe(`test endpoints - `, () => {
     let region, country, language, harvest;
@@ -20,11 +21,7 @@ describe(`test endpoints - `, () => {
         }
     });
     afterEach(async () => {
-        await models.harvest.destroy({where: {}});
-        await models.language.destroy({where: {}});
-        await models.language_country.destroy({where: {}});
-        await models.region.destroy({where: {}});
-        await models.country.destroy({where: {}});
+        await cleanup();
     });
 
     it('should be able to get a list of harvest dates', async () => {
@@ -115,9 +112,8 @@ describe(`test endpoints - `, () => {
         const r = await chakram.get(`${uri}/languages/aaa/resources`);
         const response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.code).to.equal('aaa');
-        expect(response.body.harvests.length).to.equal(1);
-        harvest = response.body.harvests.filter(h => h.date === today);
+        expect(response.body.length).to.equal(1);
+        harvest = response.body.filter(h => h.date === today);
         expect(harvest.length).to.equal(1);
         harvest = harvest[0];
         expect(harvest.resources).to.deep.equal({});
@@ -196,54 +192,3 @@ describe(`test endpoints - `, () => {
         expect(response.statusCode).to.equal(400);
     });
 });
-
-async function setup() {
-    let region = await models.region.create(
-        {
-            name: 'Africa',
-            countries: [{name: 'Algeria'}, {name: 'Angola'}]
-        },
-        {
-            include: [models.country]
-        }
-    );
-
-    let language = await models.language.create(
-        {
-            code: 'aaa',
-            harvests: [{date: today, metadata: {}, resources: {}}]
-        },
-        {include: [models.harvest]}
-    );
-    for (let country of ['Algeria', 'Angola']) {
-        country = await models.country.findOne({where: {name: country}});
-        await models.language_country.create({
-            languageId: language.get('id'),
-            countryId: country.get('id')
-        });
-    }
-
-    for (let date of ['20170401', '20180501', '20180203']) {
-        await models.harvest.create({
-            languageId: language.get('id'),
-            date: date,
-            metadata: {},
-            resources: {}
-        });
-    }
-
-    return await models.region.findOne({
-        where: {name: 'Africa'},
-        include: [
-            {
-                model: models.country,
-                include: [
-                    {
-                        model: models.language,
-                        include: [{model: models.harvest}]
-                    }
-                ]
-            }
-        ]
-    });
-}
