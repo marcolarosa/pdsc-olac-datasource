@@ -7,6 +7,7 @@ import collections
 import logging
 import json
 import datetime
+import time
 from lxml import html, etree
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -289,4 +290,5 @@ class LanguageFactory:
             else:
                 log.error("Processing {0}: {1}: not saved".format(endpoint, data['name']))
         except:
+            time.sleep(5)
             self.save(endpoint, data)
