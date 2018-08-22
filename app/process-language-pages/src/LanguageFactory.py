@@ -7,6 +7,7 @@ import collections
 import logging
 import json
 import datetime
+import time
 from lxml import html, etree
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
@@ -282,8 +283,12 @@ class LanguageFactory:
     def save(self, endpoint, data):
         service = "{0}/{1}".format(self.service, endpoint)
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        response = requests.post(service, data=json.dumps(data), headers=headers);
-        if response.status_code == 200:
-            log.info("Processing {0}: {1} saved".format(endpoint, data['name']))
-        else:
-            log.error("Processing {0}: {1}: not saved".format(endpoint, data['name']))
+        try:
+            response = requests.post(service, data=json.dumps(data), headers=headers);
+            if response.status_code == 200:
+                log.info("Processing {0}: {1} saved".format(endpoint, data['name']))
+            else:
+                log.error("Processing {0}: {1}: not saved".format(endpoint, data['name']))
+        except:
+            time.sleep(5)
+            self.save(endpoint, data)

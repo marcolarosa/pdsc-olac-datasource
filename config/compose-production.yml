@@ -36,7 +36,7 @@ services:
         restart: always
         volumes:
             - /srv/data/olac-datasource:/srv/data
-        command: [ 'node', '.']
+        command: [ 'pm2-runtime', 'start', 'ecosystem.config.js']
 
     api_db:
         image: postgres:10-alpine
