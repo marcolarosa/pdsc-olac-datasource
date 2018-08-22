@@ -5,20 +5,20 @@ volumes:
         driver: local
 
 services:
-    api_gateway:
-        image: pdsc-olac-datasource/nginx
-        hostname: api_gateway
-        tty: true
-        environment:
-            TERM: "xterm-256color"
-            NODE_ENV: "development"
-        # mem_limit: 256M
-        restart: always 
-        ports:
-            - 8080:80
+    # api_gateway:
+    #     image: pdsc-olac-datasource/nginx
+    #     hostname: api_gateway
+    #     tty: true
+    #     environment:
+    #         TERM: "xterm-256color"
+    #         NODE_ENV: "development"
+    #     # mem_limit: 256M
+    #     restart: always 
+    #     ports:
+    #         - 8080:80
 
     api_service:
-        image: pdsc-olac-datasource/api-service-production
+        image: pdsc/api-service-production
         hostname: api_service
         tty: true
         environment:
