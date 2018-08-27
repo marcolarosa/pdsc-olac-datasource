@@ -46,7 +46,7 @@ async function postRegions(req, res, next) {
     try {
         debugInfo(`Create region ${req.body.name}`);
         let region = await createRegionEntry(req.body.name);
-        debugInfo(`Create region country entries and mappings`);
+        debugInfo(`Create country entries and mappings for ${req.body.name}`);
         await createCountryEntries(req.body.countries, region);
         region = await lookupNewEntry(region.get('name'));
         res.send(200, region.get());
