@@ -163,16 +163,34 @@ async function killExistingUpdaters() {
 }
 
 async function cleanup() {
+    debugInfo(`Running cleanup`);
     await cleanupDatabase();
     archiveData();
 
     function archiveData() {
-        let cmd = `python3 process-language-pages/archiver.py `;
-        cmd += `--data ${process.env.PDSC_HARVEST_DOWNLOAD} `;
-        cmd += `--info > ${
-            process.env.PDSC_HARVEST_DOWNLOAD
-        }/archiver.log 2>&1`;
-        exec(cmd, { async: true });
+        let args = [
+            "process-language-pages/archiver.py",
+            "--data",
+            "${process.env.PDSC_HARVEST_DOWNLOAD}",
+            "--info"
+        ];
+        let logfile = `${process.env.PDSC_HARVEST_DOWNLOAD}/archiver.log`;
+        return new Promise((resolve, reject) => {
+            let stream = fs.createWriteStream(logfile, { flags: "a" });
+            const cmd = spawn("python3", args);
+            cmd.stdout.on("data", data => {
+                stream.write(data);
+            });
+
+            cmd.stderr.on("data", data => {
+                stream.write(data);
+            });
+
+            cmd.on("close", code => {
+                stream.end();
+                resolve(code);
+            });
+        });
     }
 
     async function cleanupDatabase() {
