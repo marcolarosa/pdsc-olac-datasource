@@ -32,7 +32,7 @@ const {
 
 function wireUpRoutes(server) {
     server.get("/", getHelp);
-    server.get("/update", demandLocal, (req, res, next) => {
+    server.post("/update", demandLocal, (req, res, next) => {
         killExistingUpdaters();
         let logfile = `${process.env.PDSC_HARVEST_DOWNLOAD}/last-update.log`;
         rm("-f", logfile);
@@ -40,7 +40,7 @@ function wireUpRoutes(server) {
         res.send(200);
         return next();
     });
-    server.get("/cleanup", demandLocal, (req, res, next) => {
+    server.post("/cleanup", demandLocal, (req, res, next) => {
         cleanup();
         res.send(200);
         return next();
