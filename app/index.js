@@ -1,15 +1,11 @@
 "use strict";
 require("babel-polyfill");
-require("app-module-path/cwd");
-require("app-module-path").addPath("src/common/node_modules");
+require("source-map-support").install();
 const restify = require("restify");
 const models = require("models").getModels();
-const { exec } = require("shelljs");
-const { lookup, kill } = require("ps-node");
 const cronJob = require("cron").CronJob;
-const moment = require("moment");
 const { wireUpRoutes } = require("routers");
-const { loadHarvestDates } = require("controllers");
+const { updateLanguageData, killExistingUpdaters, cleanup } = require("controllers");
 const fs = require("fs");
 const util = require("util");
 const stat = util.promisify(fs.stat);
@@ -22,12 +18,18 @@ setup().then(server => {
         new cronJob(
             "00 00 2 * * *",
             updateLanguageData,
+            () => {},
+            true,
+            "Australia/Melbourne"
+        );
+        new cronJob(
+            "00 00 4 * * *",
             cleanup,
+            () => {},
             true,
             "Australia/Melbourne"
         );
         await killExistingUpdaters();
-        // updateLanguageData();
         cleanup();
     });
 });
@@ -88,69 +90,5 @@ async function prepareRepository() {
         if (error.code === "ENOENT") {
             await mkdir(folder);
         }
-    }
-}
-
-async function updateLanguageData() {
-    await killExistingUpdaters();
-    let cmd = `python3 process-language-pages/scraper.py `;
-    cmd += `--languages process-language-pages/languages.csv `;
-    cmd += `--glotto-languoids process-language-pages/languoid.csv `;
-    cmd += `--service http://localhost:3000 `;
-    cmd += `--output-folder ${process.env.PDSC_HARVEST_DOWNLOAD} `;
-    // cmd += `--mode development `;
-    cmd += `--info > ${process.env.PDSC_HARVEST_DOWNLOAD}/last-update.log 2>&1`;
-    exec(cmd, { async: true });
-}
-
-async function killExistingUpdaters() {
-    return new Promise(async (resolve, reject) => {
-        let pids = await new Promise((resolve, reject) => {
-            lookup(
-                {
-                    command: "/bin/sh",
-                    arguments: ["-c", "python3"]
-                },
-                (error, processes) => {
-                    resolve(processes.map(p => p.pid));
-                }
-            );
-        });
-        pids = [
-            ...pids,
-            ...(await new Promise((resolve, reject) => {
-                lookup({ command: "python3" }, (error, processes) => {
-                    resolve(processes.map(p => p.pid));
-                });
-            }))
-        ];
-
-        pids.forEach(p => kill(p, "SIGKILL"));
-        resolve();
-    });
-}
-
-async function cleanup() {
-    await cleanupDatabase();
-    archiveData();
-
-    function archiveData() {
-        let cmd = `python3 process-language-pages/archiver.py `;
-        cmd += `--data ${process.env.PDSC_HARVEST_DOWNLOAD} `;
-        cmd += `--info > ${
-            process.env.PDSC_HARVEST_DOWNLOAD
-        }/archiver.log 2>&1`;
-        exec(cmd, { async: true });
-    }
-
-    async function cleanupDatabase() {
-        const dates = await loadHarvestDates();
-        const today = moment().format("YYYYMMDD");
-        dates.forEach(async d => {
-            const re = /\d\d\d\d\d\d01/;
-            if (d !== today && !d.match(re)) {
-                await models.harvest.destroy({ where: { date: d } });
-            }
-        });
     }
 }

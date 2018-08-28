@@ -37,18 +37,21 @@ class LanguageFactory:
             os.makedirs(self.output, exist_ok=True)
 
         if args.mode == 'development':
-            self.limit = 1
+            self.country_limit = 1
+            self.language_limit = 20
             self.region_pages = [
-                'http://www.language-archives.org/area/pacific'
+                'http://www.language-archives.org/area/europe',
             ]
         elif args.mode == 'testing':
-            self.limit = 10
+            self.country_limit = 10
+            self.language_limit = 40
             self.region_pages = [
                 'http://www.language-archives.org/area/africa',
                 'http://www.language-archives.org/area/americas'
             ]
         else:
-            self.limit = None
+            self.country_limit = None
+            self.language_limit = None
             self.region_pages = [
                 'http://www.language-archives.org/area/africa',
                 'http://www.language-archives.org/area/americas',
@@ -109,11 +112,9 @@ class LanguageFactory:
         countries = {}
         for region in self.data.regions:
             count = 0
-            if self.limit is not None and count >= self.limit:
-                break
             for country in self.data.regions[region]:
                 total_countries = len(self.data.regions[region])
-                if self.limit is not None and count >= self.limit:
+                if self.country_limit is not None and count >= self.country_limit:
                     break
                 count += 1
                 log.info("Processing country: %s (%s of %s in %s)" % (country['name'], count, total_countries, region))
@@ -211,7 +212,7 @@ class LanguageFactory:
                 resources = self.getLanguageData(language)
                 self.data.languages[language.code] = self.data.languages[language.code]._replace(resources=resources)
                 self.saveLanguageData(self.data.languages[language.code])
-                if self.limit is not None and i >= self.limit:
+                if self.language_limit is not None and i >= self.language_limit:
                     break;
             except KeyError:
                 log.error("Language '%s' referenced in OLAC data but missing from languages.csv" % language.code)

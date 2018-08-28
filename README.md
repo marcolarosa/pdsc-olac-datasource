@@ -2,17 +2,19 @@
 
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
-- [Components](#components)
-- [Setup](#setup)
-- [Building the containers](#building-the-containers)
-- [Starting an environment](#starting-an-environment)
-- [Stopping an environment](#stopping-an-environment)
-- [Seeing the container logs](#seeing-the-container-logs)
-- [Running the unit tests](#running-the-unit-tests)
-- [Python Harvest Tools](#python-harvest-tools)
-	- [app/process-language-pages/scraper.py](#appprocess-language-pagesscraperpy)
-	- [app/process-language-pages/archiver.py](#appprocess-language-pagesarchiverpy)
-	- [app/process-language-pages/reprocess.py](#appprocess-language-pagesreprocesspy)
+- [PARADISEC OLAC Data Source](#paradisec-olac-data-source)
+    - [Components](#components)
+    - [Setup](#setup)
+    - [Building the containers](#building-the-containers)
+    - [Starting an environment](#starting-an-environment)
+    - [Stopping an environment](#stopping-an-environment)
+    - [Seeing the container logs](#seeing-the-container-logs)
+    - [Running the unit tests](#running-the-unit-tests)
+    - [Triggering an update or cleanup](#triggering-an-update-or-cleanup)
+    - [Python Harvest Tools](#python-harvest-tools)
+        - [app/process-language-pages/scraper.py](#appprocess-language-pagesscraperpy)
+        - [app/process-language-pages/archiver.py](#appprocess-language-pagesarchiverpy)
+        - [app/process-language-pages/reprocess.py](#appprocess-language-pagesreprocesspy)
 
 <!-- /TOC -->
 
@@ -20,22 +22,24 @@ This repository contains a micro-service that harvests OLAC data from http://lan
 and makes it accessible via a simple API.
 
 The API has four routes:
- * `GET /dates` returns an array of dates of the harvested data
- * `/regions` access region data
-     - GET `/regions`: get the list of regions
-     - GET `/regions/Africa`: get the data for Africa - a list of countries is returned
- * `/countries` access country data
-     - GET `/countries`: get the list of countries
-     - GET `/countries/Algeria`: get the data for Algeria - a list of languages is returned
- * `/languages` access language data
-     - GET `/languages/aaa`: get the latest metadata for language code aaa; doesn't include resources
-     - GET `/languages/aaa/resources`: get the latest resources for language code aaa; doesn't include language metadata
-     - GET `/languages/aaa?date=20180501`: get the data for language code aaa harvested on 2018-05-01; doesn't include resources
-     - GET `/languages/aaa/resources?date=20180501`: get the resources for language code aaa harvested on 2018-05-01; doesn't include language metadata
 
+-   `GET /dates` returns an array of dates of the harvested data
+-   `/regions` access region data
+    -   GET `/regions`: get the list of regions
+    -   GET `/regions/Africa`: get the data for Africa - a list of countries is returned
+-   `/countries` access country data
+    -   GET `/countries`: get the list of countries
+    -   GET `/countries/Algeria`: get the data for Algeria - a list of languages is returned
+-   `/languages` access language data
+    -   GET `/languages/aaa`: get the latest metadata for language code aaa; doesn't include resources
+    -   GET `/languages/aaa/resources`: get the latest resources for language code aaa; doesn't include language metadata
+    -   GET `/languages/aaa?date=20180501`: get the data for language code aaa harvested on 2018-05-01; doesn't include resources
+    -   GET `/languages/aaa/resources?date=20180501`: get the resources for language code aaa harvested on 2018-05-01; doesn't include language metadata
 
 ## Components
+
 The repository contains the api source code, docker related information and helper tools as follows:
+
 ```
 |- app: the API code
    |- process-language-pages: the python based data harvesting code
@@ -43,6 +47,7 @@ The repository contains the api source code, docker related information and help
 |- config: docker compose configuration files for development and production
 |- docker: dockerfiles to build the various components
 ```
+
 There are 3 components to this service: an nginx gateway, the api and a postgres db
 
 ## Setup
@@ -50,6 +55,7 @@ There are 3 components to this service: an nginx gateway, the api and a postgres
 Ensure you have nodejs version 8 or above installed on your machine: see [https://nodejs.org/en/download/](https://nodejs.org/en/download/)
 
 Clone the repository locally then setup the application dependencies as:
+
 ```
 > cd app
 > npm install
@@ -68,6 +74,7 @@ To build the producion container
 ## Starting an environment
 
 To start the development environment:
+
 ```
 > cd bin
 > ./start development
@@ -78,12 +85,14 @@ The src code directory is volume mounted in to the container so the service will
 ## Stopping an environment
 
 To start the production environment:
+
 ```
 > cd bin
 > export POSTGRES_PASSWORD="some secure password"
 > ./start production
 ```
-* The POSTGRES_PASSWORD is as the name states - the password used for the paradisec database user. See the docker compose file for more information.
+
+-   The POSTGRES_PASSWORD is as the name states - the password used for the paradisec database user. See the docker compose file for more information.
 
 ## Seeing the container logs
 
@@ -97,6 +106,20 @@ Select which container logs you want to follow - most of the time `service` is t
 
 Assuming you have a terminal open on the service logs, open up `e2e/test-endpoints.spec.js` and save the file. The tests will be run each time the file saves.
 
+## Triggering an update or cleanup
+
+It's possible to tell the API to run a cleanup or update process by POST'ing to the relevant endpoint, viz:
+
+```
+Run an update process:
+> curl -X POST http://localhost:3000/update
+
+Run a cleanup
+> curl -X POST http://localhost:3000/cleanup
+```
+
+**Note that this needs to be done inside the container as those endpoints will not respond to external requests**
+
 ## Python Harvest Tools
 
 The python harvest tools are designed to work with python3 (which is installed in to the API container). There are 3 tools available.
@@ -106,6 +129,7 @@ The python harvest tools are designed to work with python3 (which is installed i
 The main workhorse script. This runs nightly, harvesting the data for each language on the language-archives site and then writing the data out to disk (so it's archived) in addition to submitting it to the service.
 
 An example invocation is:
+
 ```
 > python3 process-language-pages/scraper.py
  --languages process-language-pages/languages.csv
@@ -116,6 +140,7 @@ An example invocation is:
 ```
 
 To see the help:
+
 ```
 > python3 process-language-pages/generate-current-language-list.py --help
 ```
@@ -129,11 +154,13 @@ Also, after the harvest process is completed, a cleanup jobs runs to remove all 
 Archiver also runs nightly after the harvest process to tar and zip old data dumps in order to save space. Data dumps are not removed.
 
 An example invocation is:
+
 ```
 > python3 process-language-pages/archiver.py --data /srv/data
 ```
 
 To see the help:
+
 ```
 > python3 process-language-pages/archiver.py --help
 ```
@@ -143,6 +170,7 @@ To see the help:
 The reprocess script is used to reload a data harvest or upload older harvests. There shouldn't really be any need to use this but just in case:
 
 An example invocation is:
+
 ```
 > python3 process-language-pages/reprocess.py
  --data /srv/data
@@ -151,6 +179,7 @@ An example invocation is:
 ```
 
 To see the help:
+
 ```
 > python3 process-language-pages/reprocess.py --help
 ```
