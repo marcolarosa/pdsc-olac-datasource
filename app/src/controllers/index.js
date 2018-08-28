@@ -97,7 +97,7 @@ async function updateLanguageData({ run }) {
         "--service",
         "http://localhost:3000",
         "--output-folder",
-        "${process.env.PDSC_HARVEST_DOWNLOAD}",
+        `${process.env.PDSC_HARVEST_DOWNLOAD}`,
         "--info"
     ];
     // ">",
@@ -171,7 +171,7 @@ async function cleanup() {
         let args = [
             "process-language-pages/archiver.py",
             "--data",
-            "${process.env.PDSC_HARVEST_DOWNLOAD}",
+            `${process.env.PDSC_HARVEST_DOWNLOAD}`,
             "--info"
         ];
         let logfile = `${process.env.PDSC_HARVEST_DOWNLOAD}/archiver.log`;
