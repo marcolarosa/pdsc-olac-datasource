@@ -166,7 +166,10 @@ async function killExistingUpdaters() {
 
 async function cleanup() {
     debugInfo(`Running cleanup`);
+    let logfile = `${process.env.PDSC_HARVEST_DOWNLOAD}/archiver.log`;
     const today = moment().format("YYYYMMDD");
+    rm("-f", logfile);
+
     await cleanupDatabase();
     await cleanupRepository();
     archiveData();
@@ -178,7 +181,6 @@ async function cleanup() {
             `${process.env.PDSC_HARVEST_DOWNLOAD}`,
             "--info"
         ];
-        let logfile = `${process.env.PDSC_HARVEST_DOWNLOAD}/archiver.log`;
         return new Promise((resolve, reject) => {
             let stream = fs.createWriteStream(logfile, { flags: "a" });
             const cmd = spawn("python3", args);
