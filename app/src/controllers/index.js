@@ -1,6 +1,8 @@
 "use strict";
 
 const fs = require("fs");
+const util = require("util");
+const readdir = util.promisify(fs.readdir);
 const models = require("models").getModels();
 const errors = require("restify-errors");
 const debugInfo = require("debug")("pdsc:  _info");
@@ -164,7 +166,9 @@ async function killExistingUpdaters() {
 
 async function cleanup() {
     debugInfo(`Running cleanup`);
+    const today = moment().format("YYYYMMDD");
     await cleanupDatabase();
+    await cleanupRepository();
     archiveData();
 
     function archiveData() {
@@ -195,12 +199,29 @@ async function cleanup() {
 
     async function cleanupDatabase() {
         const dates = await loadHarvestDates();
-        const today = moment().format("YYYYMMDD");
         dates.forEach(async d => {
             const re = /\d\d\d\d\d\d01/;
             if (d !== today && !d.match(re)) {
                 await models.harvest.destroy({ where: { date: d } });
             }
         });
+    }
+
+    async function cleanupRepository() {
+        try {
+            const dates = await readdir(process.env.PDSC_HARVEST_REPOSITORY);
+            dates.forEach(async d => {
+                const re = /\d\d\d\d\d\d01/;
+                if (d !== today && !d.match(re)) {
+                    debugInfo(
+                        `REMOVE: ${process.env.PDSC_HARVEST_REPOSITORY}/${d}`
+                    );
+                    rm("-rf", `${process.env.PDSC_HARVEST_REPOSITORY}/${d}`);
+                }
+            });
+        } catch (error) {
+            debugError(`Error cleaning the repository`);
+            console.log(error);
+        }
     }
 }
