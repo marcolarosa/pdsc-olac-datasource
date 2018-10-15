@@ -2,7 +2,7 @@ version: '2'
 
 volumes:
     PDSC_DEVELOPMENT_DB_VOLUME:
-        driver: local
+    api-service-modules:
 
 services:
     api_gateway:
@@ -33,8 +33,9 @@ services:
             PDSC_HARVEST_REPOSITORY: "/srv/data/repository"
         mem_limit: 1024M
         volumes:
-            - ~/src/pdsc/pdsc-olac-datasource/app:/srv/pdsc-olac-datasource/api-service
-            - ~/src/pdsc/olac-data:/srv/data
+            - ~/src/pdsc/pdsc-olac-datasource/app:/srv/pdsc-olac-datasource/api-service:delegated
+            - ~/src/pdsc/olac-data:/srv/data:delegated
+            - api-service-modules:/srv/pdsc-olac-datasource/api-service/node_modules:delegated
         command: [ 'yarn', 'develop']
 
     api_db:
