@@ -3,7 +3,7 @@
 BASE="../docker"
 
 build() {
-    docker build --rm=true --tag "pdsc-olac-datasource/${1}" ${BASE}/${1}
+    docker build --rm=true --tag "pdsc/${1}" ${BASE}/${1}
 }
 
 if [ "$#" == 1 ] && [ -d "${BASE}/${1}" ] ; then

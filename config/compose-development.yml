@@ -1,30 +1,20 @@
-version: '2'
+version: "2"
 
 volumes:
     PDSC_DEVELOPMENT_DB_VOLUME:
     api-service-modules:
 
 services:
-    api_gateway:
-        image: pdsc-olac-datasource/nginx
-        hostname: api_gateway
-        tty: true
-        environment:
-            TERM: "xterm-256color"
-            NODE_ENV: "development"
-        mem_limit: 256M
-        ports:
-            - 8080:80
-
-    api_service:
-        image: pdsc-olac-datasource/api-service
-        hostname: api_service
+    api-service:
+        image: pdsc/api-service
+        hostname: api-service
         tty: true
         environment:
             TERM: "xterm-256color"
             NODE_ENV: "development"
             DEBUG: "pdsc:*"
-            PDSC_DB_HOST: "api_db"
+            PDSC_SERVER_PORT: "3000"
+            PDSC_DB_HOST: "api-db"
             PDSC_DB_PORT: "5432"
             PDSC_DB_USER: "paradisec"
             PDSC_DB_PASSWORD: "paradisec"
@@ -36,11 +26,13 @@ services:
             - ~/src/pdsc/pdsc-olac-datasource/app:/srv/pdsc-olac-datasource/api-service:delegated
             - ~/src/pdsc/olac-data:/srv/data:delegated
             - api-service-modules:/srv/pdsc-olac-datasource/api-service/node_modules:delegated
-        command: [ 'yarn', 'develop']
+        command: ["npm", "run", "develop"]
+        ports:
+            - 3000:3000
 
-    api_db:
+    api-db:
         image: postgres:10-alpine
-        hostname: api_db
+        hostname: api-db
         tty: true
         environment:
             TERM: "xterm-256color"
