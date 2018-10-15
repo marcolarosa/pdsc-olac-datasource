@@ -23,9 +23,9 @@ services:
             PDSC_HARVEST_REPOSITORY: "/srv/data/repository"
         mem_limit: 1024M
         volumes:
-            - ~/src/pdsc/pdsc-olac-datasource/app:/srv/pdsc-olac-datasource/api-service:delegated
+            - ~/src/pdsc/pdsc-olac-datasource/app:/srv/api-service:delegated
+            - api-service-modules:/srv/api-service/node_modules:delegated
             - ~/src/pdsc/olac-data:/srv/data:delegated
-            - api-service-modules:/srv/pdsc-olac-datasource/api-service/node_modules:delegated
         command: ["npm", "run", "develop"]
         ports:
             - 3000:3000

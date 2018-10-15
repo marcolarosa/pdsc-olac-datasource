@@ -5,10 +5,10 @@ RUN apt-get update && \
 
 RUN npm install -g pm2
 
-COPY ecosystem.config.js /srv/pdsc-olac-datasource/api-service/
-COPY api/ /srv/pdsc-olac-datasource/api-service/
-RUN cd /srv/pdsc-olac-datasource/api-service && npm install
+COPY ecosystem.config.js /srv/api-service/
+COPY api/ /srv/api-service/
+RUN cd /srv/api-service && npm install
 
 RUN npm install -g pm2
 
-WORKDIR /srv/pdsc-olac-datasource/api-service
+WORKDIR /srv/api-service
