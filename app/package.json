@@ -4,10 +4,10 @@
     "description": "API service",
     "main": "index.js",
     "scripts": {
-        "develop": "node_modules/gulp/bin/gulp.js develop",
-        "build": "node_modules/webpack/bin/webpack.js --config webpack.config.js",
+        "develop": "npm install && node_modules/gulp/bin/gulp.js develop",
+        "build": "npm install && node_modules/webpack/bin/webpack.js --config webpack.config.js",
         "lint": "",
-        "build:production": "./node_modules/webpack/bin/webpack.js --config webpack.deploy.production.js"
+        "build:production": "npm install && ./node_modules/webpack/bin/webpack.js --config webpack.deploy.production.js"
     },
     "repository": {
         "type": "git",
