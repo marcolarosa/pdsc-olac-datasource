@@ -54,7 +54,17 @@ function getHelp(req, res, next) {
                 },
                 {
                     URI: "/countries/{country name}",
-                    returns: "The countries and its associated languages."
+                    returns: "The country and its associated languages."
+                },
+                {
+                    URI: "/countries/{country name}/stats",
+                    returns:
+                        "The country and its associated languages with resource statistics."
+                },
+                {
+                    URI: "/countries/{country name}/stats?date=20180501",
+                    returns:
+                        "The country and its associated languages with resource statistics as at date 20180501."
                 }
             ],
             languages: [
