@@ -2,6 +2,10 @@
 
 BASE="../docker"
 
+# build the production api-service
+cd ../app && npm run build:production
+cd -
+
 # copy tools to the container hierarchy
 rsync -a --exclude \.log --exclude \.pyc \
     ../app/process-language-pages/ ../docker/api-tools-production/tools/
