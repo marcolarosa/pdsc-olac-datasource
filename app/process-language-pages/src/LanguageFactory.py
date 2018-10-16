@@ -283,7 +283,11 @@ class LanguageFactory:
 
     def save(self, endpoint, data):
         service = "{0}/{1}".format(self.service, endpoint)
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+        headers = {
+            'x-pdsc-datasource-admin': os.environ['PDSC_ADMIN_PASSWORD'],
+            'Content-type': 'application/json', 
+            'Accept': 'text/plain'
+        }
         try:
             response = requests.post(service, data=json.dumps(data), headers=headers);
             if response.status_code == 200:

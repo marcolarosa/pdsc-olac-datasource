@@ -5,7 +5,11 @@ const restify = require("restify");
 const models = require("models").getModels();
 const cronJob = require("cron").CronJob;
 const { wireUpRoutes } = require("routers");
-const { updateLanguageData, killExistingUpdaters, cleanup } = require("controllers");
+const {
+    updateLanguageData,
+    killExistingUpdaters,
+    cleanup
+} = require("controllers");
 const fs = require("fs");
 const util = require("util");
 const stat = util.promisify(fs.stat);
@@ -15,13 +19,14 @@ prepareRepository();
 setup().then(server => {
     return server.listen(process.env.PDSC_SERVER_PORT, async () => {
         console.log(`${server.name} listening at ${server.url}`);
-        new cronJob(
-            "00 00 2 * * *",
-            updateLanguageData,
-            () => {},
-            true,
-            "Australia/Melbourne"
-        );
+        // new cronJob(
+        //     "00 00 2 * * *",
+        //     updateLanguageData,
+        //     () => {},
+        //     true,
+        //     "Australia/Melbourne"
+        // );
+        // await killExistingUpdaters();
         new cronJob(
             "00 00 4 * * *",
             cleanup,
@@ -29,7 +34,6 @@ setup().then(server => {
             true,
             "Australia/Melbourne"
         );
-        await killExistingUpdaters();
         cleanup();
     });
 });

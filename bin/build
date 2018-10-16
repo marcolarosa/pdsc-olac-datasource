@@ -2,6 +2,10 @@
 
 BASE="../docker"
 
+# copy tools to the container hierarchy
+rsync -a --exclude \.log --exclude \.pyc \
+    ../app/process-language-pages/ ../docker/api-tools-production/tools/
+
 build() {
     docker build --rm=true --tag "pdsc/${1}" ${BASE}/${1}
 }

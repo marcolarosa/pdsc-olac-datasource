@@ -6,8 +6,9 @@
     - [Components](#components)
     - [Setup](#setup)
     - [Building the containers](#building-the-containers)
-    - [Starting an environment](#starting-an-environment)
-    - [Stopping an environment](#stopping-an-environment)
+    - [Starting the development environment](#starting-the-development-environment)
+    - [Stopping the development environment](#stopping-the-development-environment)
+    - [Running a harvest](#running-a-harvest)
     - [Seeing the container logs](#seeing-the-container-logs)
     - [Running the unit tests](#running-the-unit-tests)
     - [Triggering an update or cleanup](#triggering-an-update-or-cleanup)
@@ -71,28 +72,33 @@ To build the producion container
 > ./build-production
 ```
 
-## Starting an environment
-
-To start the development environment:
+## Starting the development environment
 
 ```
 > cd bin
-> ./start development
+> ./start
 ```
 
 The src code directory is volume mounted in to the container so the service will livereload as you save files (though the file watching is only on the javascript files not the python files in the data harvester tools).
 
-## Stopping an environment
-
-To start the production environment:
+## Stopping the development environment
 
 ```
 > cd bin
-> export POSTGRES_PASSWORD="some secure password"
-> ./start production
+> ./stop
 ```
 
--   The POSTGRES_PASSWORD is as the name states - the password used for the paradisec database user. See the docker compose file for more information.
+## Running a harvest
+
+The harvest needs to be run from within a docker container attached to the same network. Accordingly, there exists a container called
+`pdsc/api-tools-production` which contains the python update tools.
+
+```
+$ docker run -t --network config_default -e PDSC_ADMIN_PASSWORD=1234 -v ~/src/pdsc/olac-data:/srv/data pdsc/api-tools-production bash -c "python3 ./scraper.py --output-folder /srv/data/scrape --info"
+```
+
+Note that we pass in the admin password (PDSC_ADMIN_PASSWORD) as an environment variable. This must match whatever is defined in the
+docker compose file that was used to start the environment. Without it, the api won't accept data submissions from the tools.
 
 ## Seeing the container logs
 
@@ -132,12 +138,11 @@ An example invocation is:
 
 ```
 > python3 process-language-pages/scraper.py
- --languages process-language-pages/languages.csv
- --glotto-languoids process-language-pages/languoid.csv
- --service http://localhost:3000
  --output-folder /srv/data
  --info
 ```
+
+The script assumes the service is at `http://api-service:3000` though there is a flag to override that.
 
 To see the help:
 
@@ -173,10 +178,10 @@ An example invocation is:
 
 ```
 > python3 process-language-pages/reprocess.py
- --data /srv/data
- --date 20180501
- --service http://localhost:3000
+ --data /srv/data/scrape/20180501.tbz
 ```
+
+The script assumes the service is at `http://api-service:3000` though there is a flag to override that.
 
 To see the help:
 

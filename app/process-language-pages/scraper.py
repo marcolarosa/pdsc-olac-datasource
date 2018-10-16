@@ -3,6 +3,7 @@
 import argparse
 import logging
 from src.LanguageFactory import LanguageFactory
+import os
 
 log = logging.getLogger('')
 
@@ -15,7 +16,7 @@ if __name__ == "__main__":
                         help='The path to glottolog languoids CSV file', default="languoid.csv")
     parser.add_argument('--mode', dest='mode', choices=['development', 'testing'],
                         help='The mode in which to run - limits the processing.')
-    parser.add_argument('--service', dest='service', help='The url to submit the data to.', default="http://localhost:3000")
+    parser.add_argument('--service', dest='service', help='The url to submit the data to.', default="http://api-service:3000")
     parser.add_argument('--output-folder', dest='output', help='The folder to write the data to.', required=True)
 
     parser.add_argument('--info', dest='info', action='store_true',
@@ -34,6 +35,9 @@ if __name__ == "__main__":
     if not (args.debug and args.info):
         logging.basicConfig(level=logging.WARNING)
 
-    factory = LanguageFactory(args)
-    factory.process()
+    if "PDSC_ADMIN_PASSWORD" in os.environ:
+        factory = LanguageFactory(args)
+        factory.process()
+    else:
+        log.error("PDSC_ADMIN_PASSWORD not defined in environment so script can't run.")
     

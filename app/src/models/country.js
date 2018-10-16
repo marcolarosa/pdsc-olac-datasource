@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
 module.exports = function(sequelize, DataTypes) {
     const Country = sequelize.define(
-        'country',
+        "country",
         {
             id: {
                 primaryKey: true,
@@ -20,14 +20,14 @@ module.exports = function(sequelize, DataTypes) {
         },
         {
             timestamps: false,
-            indexes: [{unique: true, fields: ['name']}]
+            indexes: [{ unique: true, fields: ["name"] }]
         }
     );
     Country.associate = function(models) {
-        Country.belongsTo(models.region, {onDelete: 'cascade'});
+        Country.belongsTo(models.region, { onDelete: "cascade" });
         Country.belongsToMany(models.language, {
-            through: 'language_country',
-            onDelete: 'cascade'
+            through: "language_country",
+            onDelete: "cascade"
         });
     };
 

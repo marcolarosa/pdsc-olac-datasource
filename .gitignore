@@ -52,3 +52,4 @@ error.log
 last-update.log
 archiver.log
 docker/api-service-production/api
+docker/api-tools-production/tools

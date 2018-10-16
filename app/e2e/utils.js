@@ -1,10 +1,23 @@
-'use strict';
+"use strict";
 
-const models = require('../src/models').getModels();
-const moment = require('moment');
-const today = moment().format('YYYYMMDD');
+const models = require("../src/models").getModels();
+const moment = require("moment");
+const fs = require("fs");
+const dates = [
+    moment().format("YYYYMMDD"),
+    moment()
+        .subtract(1, "day")
+        .format("YYYYMMDD")
+];
+const rp = require("request-promise-native");
+const data = {
+    region: "europe",
+    countries: ["Albania"],
+    languages: ["aln", "als", "ell", "mkd", "rmy", "rup", "srp"]
+};
 
 module.exports = {
+    data,
     setup,
     cleanup,
     getLanguage,
@@ -13,71 +26,74 @@ module.exports = {
 };
 
 async function cleanup() {
-    await models.harvest.destroy({where: {}});
-    await models.language.destroy({where: {}});
-    await models.language_country.destroy({where: {}});
-    await models.region.destroy({where: {}});
-    await models.country.destroy({where: {}});
+    await models.harvest.destroy({ where: {} });
+    await models.language.destroy({ where: {} });
+    await models.language_country.destroy({ where: {} });
+    await models.region.destroy({ where: {} });
+    await models.country.destroy({ where: {} });
 }
 
 async function setup() {
-    let region = await models.region.create(
-        {
-            name: 'Africa',
-            countries: [{name: 'Algeria'}, {name: 'Angola'}]
-        },
-        {
-            include: [models.country]
-        }
-    );
+    await createRegion();
+    await createCountry();
+    await createLanguageEntries();
 
-    let language = await models.language.create(
-        {
-            code: 'aaa',
-            harvests: [{date: today, metadata: {}, resources: ''}]
-        },
-        {include: [models.harvest]}
-    );
-    for (let country of ['Algeria', 'Angola']) {
-        country = await models.country.findOne({where: {name: country}});
-        await models.language_country.create({
-            languageId: language.get('id'),
-            countryId: country.get('id')
-        });
+    async function createRegion() {
+        const body = {
+            name: data.region,
+            countries: data.countries
+        };
+        return await submit("regions", body);
     }
 
-    for (let date of ['20170401', '20180501', '20180203']) {
-        await models.harvest.create({
-            languageId: language.get('id'),
-            date: date,
-            metadata: {},
-            resources: ''
-        });
+    async function createCountry() {
+        const body = {
+            name: data.countries[0],
+            languages: data.languages
+        };
+        return await submit("countries", body);
     }
 
-    return await models.region.findOne({
-        where: {name: 'Africa'},
-        include: [
-            {
-                model: models.country,
-                include: [
-                    {
-                        model: models.language,
-                        include: [{model: models.harvest}]
-                    }
-                ]
+    async function createLanguageEntries() {
+        let body;
+        for (let date of dates) {
+            for (let language of data.languages) {
+                body = {
+                    code: language,
+                    ...JSON.parse(
+                        fs.readFileSync(
+                            `${__dirname}/test-data/${language}.json`,
+                            { encoding: "utf8" }
+                        )
+                    ),
+                    date: date
+                };
+                await submit("languages", body);
             }
-        ]
-    });
+        }
+    }
+
+    async function submit(endpoint, body) {
+        let options = {
+            method: "POST",
+            headers: {
+                "X-PDSC-DATASOURCE-ADMIN": process.env.PDSC_ADMIN_PASSWORD
+            },
+            uri: `http://localhost:3000/${endpoint}`,
+            body,
+            json: true // Automatically stringifies the body to JSON
+        };
+        return await rp(options);
+    }
 }
 
 async function getLanguage(code) {
     return await models.language.findOne({
-        where: {code},
+        where: { code },
         include: [
             {
                 model: models.country,
-                include: [{model: models.region, raw: true}],
+                include: [{ model: models.region, raw: true }],
                 raw: true
             },
             {
@@ -89,11 +105,11 @@ async function getLanguage(code) {
 
 async function getCountry(name) {
     return await models.country.findOne({
-        where: {name},
+        where: { name },
         include: [
             {
                 model: models.language,
-                include: [{model: models.harvest}]
+                include: [{ model: models.harvest }]
             }
         ]
     });
@@ -101,7 +117,7 @@ async function getCountry(name) {
 
 async function getRegion(name) {
     return await models.region.findOne({
-        where: {name},
+        where: { name },
         include: [
             {
                 model: models.country,
