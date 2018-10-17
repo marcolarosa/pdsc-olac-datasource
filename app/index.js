@@ -2,6 +2,7 @@
 require("babel-polyfill");
 require("source-map-support").install();
 const restify = require("restify");
+const corsMiddleware = require("restify-cors-middleware");
 const models = require("models").getModels();
 const cronJob = require("cron").CronJob;
 const { wireUpRoutes } = require("routers");
@@ -55,6 +56,16 @@ function setup() {
         const server = restify.createServer();
         server.server.timeout = 60000 * 5;
         server.name = "OLAC Datasource";
+        if (process.env.NODE_ENV === "development") {
+            const cors = corsMiddleware({
+                preflightMaxAge: 5,
+                origins: ["*"],
+                allowHeaders: ["authorization", "x-inteja-dataset-token"],
+                exposeHeaders: ["authorization", "x-inteja-dataset-token"]
+            });
+            server.pre(cors.preflight);
+            server.use(cors.actual);
+        }
         server.use(restify.plugins.acceptParser(server.acceptable));
         server.use(restify.plugins.dateParser());
         server.use(restify.plugins.queryParser());
