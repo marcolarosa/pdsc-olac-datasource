@@ -93,7 +93,8 @@ function getHelp(req, res, next) {
 }
 
 async function getDates(req, res, next) {
-    res.send(200, await loadHarvestDates());
+    const dates = await loadHarvestDates();
+    res.send(200, { dates });
     return next();
 }
 

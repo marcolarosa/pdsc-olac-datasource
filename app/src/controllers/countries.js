@@ -16,7 +16,7 @@ module.exports = {
 
 async function getCountries(req, res, next) {
     const countries = await models.country.findAll();
-    res.send(200, countries.map(c => c.get("name")).sort());
+    res.send(200, { countries: countries.map(c => c.get("name")).sort() });
     return next();
 }
 
@@ -32,7 +32,7 @@ async function getCountry(req, res, next) {
     if (country) {
         country = country.get();
         country.languages = country.languages.map(l => l.code).sort();
-        res.send(200, country);
+        res.send(200, { country });
         return next();
     } else {
         return next(new errors.NotFoundError());

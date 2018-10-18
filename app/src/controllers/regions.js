@@ -1,9 +1,9 @@
-'use strict';
+"use strict";
 
-const models = require('models').getModels();
-const errors = require('restify-errors');
-const debugInfo = require('debug')('pdsc:  _info');
-const debugError = require('debug')('pdsc: _error');
+const models = require("models").getModels();
+const errors = require("restify-errors");
+const debugInfo = require("debug")("pdsc:  _info");
+const debugError = require("debug")("pdsc: _error");
 
 module.exports = {
     getRegions,
@@ -13,7 +13,7 @@ module.exports = {
 
 async function getRegions(req, res, next) {
     const regions = await models.region.findAll();
-    res.send(200, regions.map(r => r.get('name')));
+    res.send(200, { regions: regions.map(r => r.get("name")) });
     return next();
 }
 
@@ -22,17 +22,17 @@ async function getRegion(req, res, next) {
         return next(new errors.BadRequestError());
     }
     const region = await models.region.findOne({
-        where: {name: req.params.region},
-        attributes: ['name'],
+        where: { name: req.params.region },
+        attributes: ["name"],
         include: [
             {
                 model: models.country,
-                attributes: ['name']
+                attributes: ["name"]
             }
         ]
     });
     if (region) {
-        res.send(200, region.get());
+        res.send(200, { region: region.get() });
         return next();
     } else {
         return next(new errors.NotFoundError());
@@ -48,7 +48,7 @@ async function postRegions(req, res, next) {
         let region = await createRegionEntry(req.body.name);
         debugInfo(`Create country entries and mappings for ${req.body.name}`);
         await createCountryEntries(req.body.countries, region);
-        region = await lookupNewEntry(region.get('name'));
+        region = await lookupNewEntry(region.get("name"));
         res.send(200, region.get());
         return next();
     } catch (error) {
@@ -58,8 +58,8 @@ async function postRegions(req, res, next) {
 
     async function createRegionEntry(name) {
         const region = await models.region.findOrCreate({
-            where: {name},
-            defaults: {name}
+            where: { name },
+            defaults: { name }
         });
         return region[0];
     }
@@ -69,7 +69,7 @@ async function postRegions(req, res, next) {
         for (let country of req.body.countries) {
             data = {
                 name: country,
-                regionId: region.get('id')
+                regionId: region.get("id")
             };
             await models.country.findOrCreate({
                 where: data,
@@ -80,8 +80,8 @@ async function postRegions(req, res, next) {
 
     async function lookupNewEntry(region) {
         return await models.region.findOne({
-            where: {name: region},
-            include: [{model: models.country}]
+            where: { name: region },
+            include: [{ model: models.country }]
         });
     }
 }
