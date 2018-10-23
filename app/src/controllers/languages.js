@@ -34,12 +34,14 @@ async function getLanguages(req, res, next) {
         attributes: ["id", "code"]
     });
     languages = languages.map(l => {
-        return {
+        l = {
             id: l.get("id"),
             code: l.get("code"),
             name: l.get("harvests")[0].get("metadata").name
         };
+        if (l.name) return l;
     });
+    languages = compact(languages);
     if (languages) {
         res.send(200, { languages: orderBy(languages, "name") });
         return next();
