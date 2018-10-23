@@ -31,14 +31,19 @@ describe(`test languages endpoints - `, () => {
         await cleanup();
     });
 
+    it("should be able to get a list of all languages", async () => {
+        const response = (await chakram.get(`${uri}/languages`)).response;
+        expect(response.statusCode).to.equal(200);
+        expect(response.body.languages).length(7);
+    });
     it("should be able to get the data for a language", async () => {
         const response = (await chakram.get(
             `${uri}/languages/${data.languages[0]}`
         )).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.code).to.equal(data.languages[0]);
-        expect(response.body.harvests.length).to.equal(1);
-        const harvest = response.body.harvests[0];
+        expect(response.body.language.code).to.equal(data.languages[0]);
+        expect(response.body.language.harvests.length).to.equal(1);
+        const harvest = response.body.language.harvests[0];
         expect(harvest.date).to.equal(dates.today);
     });
 
@@ -47,9 +52,9 @@ describe(`test languages endpoints - `, () => {
             `${uri}/languages/${data.languages[0]}?date=${dates.yesterday}`
         )).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.code).to.equal(data.languages[0]);
-        expect(response.body.harvests.length).to.equal(1);
-        const harvest = response.body.harvests[0];
+        expect(response.body.language.code).to.equal(data.languages[0]);
+        expect(response.body.language.harvests.length).to.equal(1);
+        const harvest = response.body.language.harvests[0];
         expect(harvest.date).to.equal(dates.yesterday);
     });
 
@@ -58,7 +63,7 @@ describe(`test languages endpoints - `, () => {
             `${uri}/languages/${data.languages[0]}/resources`
         )).response;
         expect(response.statusCode).to.equal(200);
-        const resources = response.body.resources;
+        const resources = response.body.language.resources;
         expect(resources["Lexical resources"].count).to.equal(1);
         expect(resources["Other resources about the language"].count).to.equal(
             13
@@ -73,7 +78,7 @@ describe(`test languages endpoints - `, () => {
             }`
         )).response;
         expect(response.statusCode).to.equal(200);
-        const resources = response.body.resources;
+        const resources = response.body.language.resources;
         expect(resources["Lexical resources"].count).to.equal(1);
         expect(resources["Other resources about the language"].count).to.equal(
             13

@@ -31,7 +31,7 @@ describe(`test endpoints - `, () => {
         let r = await chakram.get(`${uri}/dates`);
         let response = r.response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.length).to.equal(2);
-        expect(response.body.sort()).to.deep.equal(dates);
+        expect(response.body.dates.length).to.equal(2);
+        expect(response.body.dates.sort()).to.deep.equal(dates);
     });
 });

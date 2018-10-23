@@ -33,15 +33,17 @@ describe(`test regions endpoints - `, () => {
     it("should be able to get a list of regions", async () => {
         const response = (await chakram.get(`${uri}/regions`)).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.length).to.equal(1);
-        expect(response.body).to.deep.equal(["europe"]);
+        expect(response.body.regions.length).to.equal(1);
+        expect(response.body.regions).to.deep.equal(["europe"]);
     });
 
     it("should be able to get a specific region", async () => {
         const response = (await chakram.get(`${uri}/regions/europe`)).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.name).to.equal("europe");
-        expect(response.body.countries).to.deep.equal([{ name: "Albania" }]);
+        expect(response.body.region.name).to.equal("europe");
+        expect(response.body.region.countries).to.deep.equal([
+            { name: "Albania" }
+        ]);
     });
 
     it("should be able to create a region", async () => {
@@ -55,10 +57,10 @@ describe(`test regions endpoints - `, () => {
         )).response;
         const response = (await chakram.get(`${uri}/regions/oceania`)).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.countries.length).to.equal(1);
-        expect(response.body.countries.map(c => c.name).sort()).to.deep.equal([
-            "Australia"
-        ]);
+        expect(response.body.region.countries.length).to.equal(1);
+        expect(
+            response.body.region.countries.map(c => c.name).sort()
+        ).to.deep.equal(["Australia"]);
     });
 
     it("should return not found error looking for an unknown region", async () => {

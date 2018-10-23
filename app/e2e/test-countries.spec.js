@@ -13,7 +13,7 @@ const dates = {
     today: moment().format("YYYYMMDD")
 };
 
-describe.only(`test countries endpoints - `, () => {
+describe(`test countries endpoints - `, () => {
     let region, country, language, harvest;
     const headers = {
         "X-PDSC-DATASOURCE-ADMIN": process.env.PDSC_ADMIN_PASSWORD
@@ -33,16 +33,16 @@ describe.only(`test countries endpoints - `, () => {
     it("should be able to get a list of countries", async () => {
         const response = (await chakram.get(`${uri}/countries`)).response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.length).to.equal(1);
-        expect(response.body).to.deep.equal(["Albania"]);
+        expect(response.body.countries.length).to.equal(1);
+        expect(response.body.countries).to.deep.equal(["Albania"]);
     });
 
     it("should be able to get a specific country", async () => {
         const response = (await chakram.get(`${uri}/countries/Albania`))
             .response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.name).to.equal("Albania");
-        expect(response.body.languages).to.deep.equal(data.languages);
+        expect(response.body.country.name).to.equal("Albania");
+        expect(response.body.country.languages).to.deep.equal(data.languages);
     });
 
     it("should get the language resource statistics for a given country", async () => {
@@ -89,8 +89,8 @@ describe.only(`test countries endpoints - `, () => {
         const response = (await chakram.get(`${uri}/countries/Australia`))
             .response;
         expect(response.statusCode).to.equal(200);
-        expect(response.body.name).to.equal("Australia");
-        expect(response.body.languages).to.deep.equal(["aaa"]);
+        expect(response.body.country.name).to.equal("Australia");
+        expect(response.body.country.languages).to.deep.equal(["aaa"]);
     });
 
     it("should return not found error looking for an unknown country", async () => {
