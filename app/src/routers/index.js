@@ -15,6 +15,7 @@ const {
     postCountries
 } = require("controllers/countries");
 const {
+    getLanguages,
     getLanguage,
     getLanguageResources,
     postLanguage
@@ -52,7 +53,7 @@ function wireUpRoutes(server) {
     server.get("/countries", getCountries);
     server.get("/countries/:country", getCountry);
     server.get("/countries/:country/stats", getCountryStats);
-    server.get("/languages", getLanguage);
+    server.get("/languages", getLanguages);
     server.get("/languages/:code", getLanguage);
     server.get("/languages/:code/resources", getLanguageResources);
     server.post("/regions", demandAuthorised, postRegions);

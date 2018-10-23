@@ -14,10 +14,39 @@ const write = util.promisify(fs.writeFile);
 const read = util.promisify(fs.readFile);
 
 module.exports = {
+    getLanguages,
     getLanguage,
     getLanguageResources,
     postLanguage
 };
+
+async function getLanguages(req, res, next) {
+    const dates = await loadHarvestDates();
+    const date = req.query.date ? req.query.date : dates.pop();
+    let languages = await models.language.findAll({
+        include: [
+            {
+                model: models.harvest,
+                where: { date },
+                attributes: ["date", "metadata"]
+            }
+        ],
+        attributes: ["id", "code"]
+    });
+    languages = languages.map(l => {
+        return {
+            id: l.get("id"),
+            code: l.get("code"),
+            name: l.get("harvests")[0].get("metadata").name
+        };
+    });
+    if (languages) {
+        res.send(200, { languages });
+        return next();
+    } else {
+        return next(new errors.NotFoundError());
+    }
+}
 
 async function getLanguage(req, res, next) {
     if (!req.params.code) {
@@ -39,7 +68,7 @@ async function getLanguage(req, res, next) {
         attributes: ["id", "code"]
     });
     if (language) {
-        res.send(200, language.get());
+        res.send(200, { language: language.get() });
         return next();
     } else {
         return next(new errors.NotFoundError());
@@ -79,7 +108,7 @@ async function getLanguageResources(req, res, next) {
                 };
             })
         );
-        res.send(200, resources[0]);
+        res.send(200, { language: resources[0] });
         return next();
     } catch (error) {
         console.log("");
