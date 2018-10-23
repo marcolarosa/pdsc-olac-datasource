@@ -5,7 +5,7 @@ const errors = require("restify-errors");
 const debugInfo = require("debug")("pdsc:  _info");
 const debugError = require("debug")("pdsc: _error");
 const { loadHarvestDates } = require("controllers");
-const { map, compact } = require("lodash");
+const { map, orderBy } = require("lodash");
 const fs = require("fs");
 const util = require("util");
 const stat = util.promisify(fs.stat);
@@ -41,7 +41,7 @@ async function getLanguages(req, res, next) {
         };
     });
     if (languages) {
-        res.send(200, { languages });
+        res.send(200, { languages: orderBy(languages, "name") });
         return next();
     } else {
         return next(new errors.NotFoundError());

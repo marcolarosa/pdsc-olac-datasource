@@ -69,6 +69,15 @@ function getHelp(req, res, next) {
             ],
             languages: [
                 {
+                    URI: "/languages",
+                    returns: "The list of available languages."
+                },
+                {
+                    URI: "/languages?date=20180501",
+                    returns:
+                        "The list of available languages as at date 20180501."
+                },
+                {
                     URI: "/languages/{language code}",
                     returns:
                         "The most recent language data harvested without resources."
