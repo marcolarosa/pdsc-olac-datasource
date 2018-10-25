@@ -97,23 +97,32 @@ async function getLanguageResources(req, res, next) {
             ],
             attributes: ["id", "code"]
         });
-        const resources = await Promise.all(
-            language.get("harvests").map(async harvest => {
-                let resources = {};
+        if (!language) {
+            res.send(200, { language: {} });
+            return next();
+        }
+        let resources = [];
+        for (let harvest of language.get("harvests")) {
+            let r;
+            try {
                 if (harvest.resources) {
-                    resources = await read(harvest.resources);
-                    resources = JSON.parse(resources);
+                    r = await read(harvest.resources, { encoding: "utf8" });
+                    r = JSON.parse(r);
                 }
-                return {
-                    date: harvest.date,
-                    resources: resources
-                };
-            })
-        );
+                resources.push({ date: harvest.date, resources: r });
+            } catch (error) {
+                console.log(error);
+                debugError(
+                    `Resources missing for ${language.get(
+                        "code"
+                    )} @ ${harvest.get("date")}`
+                );
+            }
+        }
         res.send(200, { language: resources[0] });
         return next();
     } catch (error) {
-        console.log("");
+        res.send(200, { language: {} });
     }
 }
 
