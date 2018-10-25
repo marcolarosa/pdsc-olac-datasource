@@ -27,6 +27,9 @@ async function loadHarvestDates() {
         attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("date")), "date"]]
     });
     dates = dates.map(d => d.get("date"));
+    // always remove the most recent harvest as it may not be complete
+    //  seriously - does it matter that we're one day behind?
+    dates.pop();
     return dates.sort();
 }
 
