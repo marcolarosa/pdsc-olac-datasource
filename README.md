@@ -1,21 +1,25 @@
+> # Development of this application has moved to https://github.com/CoEDL/olac-datasource.
+>
+> ## Issues raised in this repository will be ignored.
+
 # PARADISEC OLAC Data Source
 
 <!-- TOC depthFrom:2 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [PARADISEC OLAC Data Source](#paradisec-olac-data-source)
-    - [Components](#components)
-    - [Setup](#setup)
-    - [Building the containers](#building-the-containers)
-    - [Starting the development environment](#starting-the-development-environment)
-    - [Stopping the development environment](#stopping-the-development-environment)
-    - [Running a harvest](#running-a-harvest)
-    - [Seeing the container logs](#seeing-the-container-logs)
-    - [Running the unit tests](#running-the-unit-tests)
-    - [Triggering an update or cleanup](#triggering-an-update-or-cleanup)
-    - [Python Harvest Tools](#python-harvest-tools)
-        - [app/process-language-pages/scraper.py](#appprocess-language-pagesscraperpy)
-        - [app/process-language-pages/archiver.py](#appprocess-language-pagesarchiverpy)
-        - [app/process-language-pages/reprocess.py](#appprocess-language-pagesreprocesspy)
+  - [Components](#components)
+  - [Setup](#setup)
+  - [Building the containers](#building-the-containers)
+  - [Starting the development environment](#starting-the-development-environment)
+  - [Stopping the development environment](#stopping-the-development-environment)
+  - [Running a harvest](#running-a-harvest)
+  - [Seeing the container logs](#seeing-the-container-logs)
+  - [Running the unit tests](#running-the-unit-tests)
+  - [Triggering an update or cleanup](#triggering-an-update-or-cleanup)
+  - [Python Harvest Tools](#python-harvest-tools)
+    - [app/process-language-pages/scraper.py](#appprocess-language-pagesscraperpy)
+    - [app/process-language-pages/archiver.py](#appprocess-language-pagesarchiverpy)
+    - [app/process-language-pages/reprocess.py](#appprocess-language-pagesreprocesspy)
 
 <!-- /TOC -->
 
