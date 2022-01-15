@@ -54,6 +54,6 @@
         "restify-cors-middleware": "^1.1.1",
         "restify-errors": "^5.0.0",
         "sequelize": "^4.39.0",
-        "shelljs": "^0.8.2"
+        "shelljs": "^0.8.5"
     }
 }
